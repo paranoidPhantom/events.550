@@ -1,24 +1,31 @@
 {
-  "name": "nuxt-app",
-  "private": true,
-  "type": "module",
-  "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
+	"name": "nuxt-app",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "nuxt build",
+		"dev": "nuxt dev",
+		"generate": "nuxt generate",
+		"preview": "nuxt preview",
 		"postinstall": "nuxt prepare",
 		"supatypes": "npx supabase gen types typescript --project-id \"$(node -e 'require(\"dotenv\").config(); console.log(process.env.PROJECT_REF)')\" --schema public > supabase/db.ts"
-  },
-  "dependencies": {
-    "@nuxt/eslint": "^0.7.2",
-    "@nuxt/fonts": "^0.10.2",
-    "@nuxt/ui": "^2.19.2",
-    "@nuxtjs/supabase": "^1.4.3",
-    "@nuxtjs/turnstile": "^0.9.11",
-    "nuxt": "^3.14.1592",
-    "vue": "latest",
-    "vue-router": "latest"
-  },
-  "packageManager": "pnpm@9.13.2+sha512.88c9c3864450350e65a33587ab801acf946d7c814ed1134da4a924f6df5a2120fd36b46aab68f7cd1d413149112d53c7db3a4136624cfd00ff1846a0c6cef48a"
+	},
+	"dependencies": {
+		"@nuxt/eslint": "^0.7.2",
+		"@nuxt/fonts": "^0.10.2",
+		"@nuxt/scripts": "^0.9.5",
+		"@nuxt/ui": "^2.19.2",
+		"@nuxtjs/supabase": "^1.4.3",
+		"@nuxtjs/turnstile": "^0.9.11",
+		"nuxt": "^3.14.1592",
+		"nuxt-aos": "^1.2.5",
+		"sass": "^1.82.0",
+		"tailwindcss": "^3.4.16",
+		"vue": "latest",
+		"vue-router": "latest"
+	},
+	"packageManager": "pnpm@9.13.2+sha512.88c9c3864450350e65a33587ab801acf946d7c814ed1134da4a924f6df5a2120fd36b46aab68f7cd1d413149112d53c7db3a4136624cfd00ff1846a0c6cef48a",
+	"devDependencies": {
+		"supabase": ">=1.8.1"
+	}
 }
