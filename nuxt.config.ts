@@ -9,6 +9,7 @@ export default defineNuxtConfig({
         "@nuxtjs/turnstile",
         "@nuxt/ui",
         "nuxt-aos",
+        "@nuxtjs/seo",
     ],
     future: {
         compatibilityVersion: 4,
@@ -18,7 +19,21 @@ export default defineNuxtConfig({
         redirectOptions: {
             login: "/auth",
             callback: "/confirm",
-            include: ["/auth"],
+            include: ["/manage"],
         },
+    },
+    turnstile: {
+        secretKey: process.env.NUXT_TURNSTILE_SECRET_KEY,
+    },
+    css: ["~/assets/global.scss"],
+    app: {
+        pageTransition: {
+            name: "page",
+            mode: "out-in",
+        },
+    },
+    site: {
+        name: "events.550",
+        description: "",
     },
 });
