@@ -9,6 +9,83 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      "cast-options": {
+        Row: {
+          author: string
+          description: string | null
+          id: number
+          image_urls: string[]
+          name: string
+        }
+        Insert: {
+          author: string
+          description?: string | null
+          id?: number
+          image_urls: string[]
+          name: string
+        }
+        Update: {
+          author?: string
+          description?: string | null
+          id?: number
+          image_urls?: string[]
+          name?: string
+        }
+        Relationships: []
+      }
+      casts: {
+        Row: {
+          created_at: string
+          id: string
+          selection_1: number | null
+          selection_2: number | null
+          selection_3: number | null
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          selection_1?: number | null
+          selection_2?: number | null
+          selection_3?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          selection_1?: number | null
+          selection_2?: number | null
+          selection_3?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "casts_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "identities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "casts_selection_1_fkey"
+            columns: ["selection_1"]
+            isOneToOne: false
+            referencedRelation: "cast-options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "casts_selection_2_fkey"
+            columns: ["selection_2"]
+            isOneToOne: false
+            referencedRelation: "cast-options"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "casts_selection_3_fkey"
+            columns: ["selection_3"]
+            isOneToOne: false
+            referencedRelation: "cast-options"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       identities: {
         Row: {
           first_name: string
@@ -16,6 +93,7 @@ export type Database = {
           id: string
           last_name: string
           middle_name: string | null
+          restricted: boolean
         }
         Insert: {
           first_name: string
@@ -23,6 +101,7 @@ export type Database = {
           id?: string
           last_name: string
           middle_name?: string | null
+          restricted?: boolean
         }
         Update: {
           first_name?: string
@@ -30,6 +109,7 @@ export type Database = {
           id?: string
           last_name?: string
           middle_name?: string | null
+          restricted?: boolean
         }
         Relationships: []
       }
