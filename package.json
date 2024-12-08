@@ -15,6 +15,7 @@
 		"@nuxt/fonts": "^0.10.2",
 		"@nuxt/scripts": "^0.9.5",
 		"@nuxt/ui": "^2.19.2",
+		"@nuxtjs/seo": "^2.0.2",
 		"@nuxtjs/supabase": "^1.4.3",
 		"@nuxtjs/turnstile": "^0.9.11",
 		"nuxt": "^3.14.1592",
