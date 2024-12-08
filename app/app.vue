@@ -51,7 +51,18 @@ colorMode.preference = "dark";
 
 <template>
     <div class="__root">
+        <div
+            id="snow-container"
+            class="fixed top-0 w-full h-screen z-20 pointer-events-none"
+        />
         <NuxtRouteAnnouncer />
-        <NuxtPage />
+        <UNotifications />
+
+        <!-- Actual content -->
+        <div class="px-4 sm:px-8 w-full mx-auto max-w-[800px]">
+            <NuxtPage />
+        </div>
     </div>
 </template>
+
+<style lang="scss"></style>
