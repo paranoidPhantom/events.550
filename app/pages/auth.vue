@@ -2,8 +2,7 @@
 import type { FormError } from "@nuxt/ui/dist/runtime/types";
 import type { RouteLocationRaw } from "#vue-router";
 definePageMeta({
-    name: "Авторизация",
-    layout: "admin",
+    title: "Авторизация",
     middleware: async () => {
         const { auth } = useSupabaseClient();
         const {
@@ -75,7 +74,7 @@ async function submit() {
 </script>
 
 <template>
-    <div class="p-4 sm:p-8 w-full max-w-[400px] mx-auto mt-[20%]">
+    <div class="p-4 sm:p-8">
         <UCard>
             <UForm
                 class="space-y-4"
@@ -83,7 +82,11 @@ async function submit() {
                 :state="state"
                 @submit="submit"
             >
-                <h2 class="text-xl">Авторизуйтесь</h2>
+                <div class="flex items-center text-4xl gap-4 opacity-50">
+                    <UIcon name="fa6-solid:id-badge" />
+                    <UIcon name="material-symbols:key-vertical" />
+                </div>
+                <h2 class="text-xl">System management authentication</h2>
                 <UAlert
                     v-if="message && message !== 'undefined'"
                     icon="i-heroicons-lock-closed"
@@ -91,11 +94,15 @@ async function submit() {
                     variant="subtle"
                     :title="(message as string)"
                 />
-                <hr class="opacity-10" >
-                <UFormGroup label="Email" name="email">
+                <hr class="opacity-10" />
+                <UFormGroup label="UID" name="email">
                     <UInput v-model="state.email" />
                 </UFormGroup>
-                <UFormGroup label="Пароль" name="password" :error="state.error">
+                <UFormGroup
+                    label="Password"
+                    name="password"
+                    :error="state.error"
+                >
                     <UInput v-model="state.password" type="password" />
                 </UFormGroup>
                 <UButton type="submit">
@@ -103,7 +110,7 @@ async function submit() {
                         v-if="waitingForRes"
                         name="svg-spinners:3-dots-scale"
                     />
-                    {{ !waitingForRes ? "Войти" : "" }}
+                    {{ !waitingForRes ? "Authenticate" : "" }}
                 </UButton>
             </UForm>
         </UCard>
