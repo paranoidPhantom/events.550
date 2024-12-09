@@ -7,7 +7,7 @@ const snowDisabled = useCookie<boolean>("snow");
 
 <template>
     <ClientOnly>
-        <div class="branding flex items-center gap-4">
+        <div class="branding flex items-center gap-4 flex-wrap">
             <img
                 v-if="eventConfig?.logo_url"
                 :src="eventConfig?.logo_url"
@@ -32,7 +32,7 @@ const snowDisabled = useCookie<boolean>("snow");
             <UButton
                 icon="mingcute:snow-fill"
                 color="white"
-                class="ml-auto"
+                class="sm:ml-auto"
                 @click="snowDisabled = snowDisabled ? undefined : 'true'"
             />
         </div>
