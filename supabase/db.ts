@@ -37,6 +37,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          ip_extracted: string | null
           selection_1: number | null
           selection_2: number | null
           selection_3: number | null
@@ -44,6 +45,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id: string
+          ip_extracted?: string | null
           selection_1?: number | null
           selection_2?: number | null
           selection_3?: number | null
@@ -51,6 +53,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          ip_extracted?: string | null
           selection_1?: number | null
           selection_2?: number | null
           selection_3?: number | null
@@ -85,6 +88,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      "fake-identities": {
+        Row: {
+          first_name: string
+          grade: string | null
+          id: string
+          last_name: string
+          middle_name: string | null
+          restricted: boolean
+        }
+        Insert: {
+          first_name: string
+          grade?: string | null
+          id?: string
+          last_name: string
+          middle_name?: string | null
+          restricted?: boolean
+        }
+        Update: {
+          first_name?: string
+          grade?: string | null
+          id?: string
+          last_name?: string
+          middle_name?: string | null
+          restricted?: boolean
+        }
+        Relationships: []
       }
       identities: {
         Row: {
