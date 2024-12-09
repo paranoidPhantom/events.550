@@ -55,6 +55,7 @@ export default defineEventHandler(async (event) => {
             extracted_ip: ip,
         });
         if (error) {
+            console.error(error);
             throw createError({
                 statusCode: 409,
                 message: error.message,
