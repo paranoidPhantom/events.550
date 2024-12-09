@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
             selection_1: selectionArray[0],
             selection_2: selectionArray[1],
             selection_3: selectionArray[2],
-            extracted_ip: ip,
+            ip_extracted: ip,
         });
         if (error) {
             console.error(error);
