@@ -12,7 +12,7 @@
             <UDivider class="my-4" />
             <p>
                 &copy; {{ new Date().getFullYear() }}
-                <NuxtLink to="https://hudalla.dev" external
+                <NuxtLink to="https://hudalla.dev" external target="_blank"
                     >Андрей Худалла</NuxtLink
                 >
             </p>
