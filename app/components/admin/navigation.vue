@@ -12,6 +12,10 @@ const links = [
         to: "/",
     },
     {
+        label: "Vote",
+        to: "/vote",
+    },
+    {
         label: "Logout",
         click: () => {
             auth.signOut();

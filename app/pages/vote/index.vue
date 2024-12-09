@@ -119,6 +119,13 @@ const submitVote = async () => {
                     color: "rose",
                 });
                 break;
+            case 404:
+                toast.add({
+                    icon: "mdi-alert-circle",
+                    title: "Голосование на данный момент закрыто!",
+                    color: "rose",
+                });
+                break;
         }
     }
 };

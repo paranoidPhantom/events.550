@@ -22,6 +22,17 @@ export default defineEventHandler(async (event) => {
 
     const supabase = serverSupabaseServiceRole<Database>(event);
 
+    const { data: eventConfig } = await supabase
+        .from("event-config")
+        .select()
+        .maybeSingle();
+
+    if (!eventConfig || !eventConfig.voting_open)
+        throw createError({
+            statusCode: 404,
+            message: "Voting is closed",
+        });
+
     const selectionArray = Array.from(
         new Set(
             Object.keys(selection)
