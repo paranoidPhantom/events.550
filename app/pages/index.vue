@@ -5,7 +5,7 @@ const eventConfig = useEventConfig();
 </script>
 
 <template>
-    <div class="flex flex-col gap-4 pb-4">
+    <div class="flex flex-col gap-4">
         <UAlert
             v-if="eventConfig?.restricted"
             title="Мероприятие доступно только для администрации"
