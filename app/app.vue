@@ -4,7 +4,7 @@ useScript({
 });
 useScript({
     src: "/js/activate.js",
-    defer: true,
+    async: true,
 });
 
 const colorMode = useColorMode();
