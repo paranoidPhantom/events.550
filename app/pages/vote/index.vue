@@ -14,7 +14,7 @@ const state = reactive<VoteState>({
     selection: {},
 });
 
-const identities = useIdentities();
+const { data: identities } = await useIdentities();
 
 const filteredIdentities = computed(() => {
     if (!state.first_name && !state.last_name && !state.middle_name)
@@ -32,7 +32,7 @@ const filteredIdentities = computed(() => {
 });
 
 const validIdentity = ref(false);
-const foundMatch = ref<DBRow<"identities">>();
+const foundMatch = ref<Partial<DBRow<"identities">>>();
 
 watch(filteredIdentities, (updatedFilteredIdentities) => {
     if (updatedFilteredIdentities?.length === 1) {
@@ -87,7 +87,7 @@ const submitVote = async () => {
     try {
         await $fetch("/api/vote", {
             method: "POST",
-            body: { ...state, id: foundMatch.value?.id },
+            body: { ...state, ...foundMatch.value },
         });
         alreadyVoted.value = true;
         navigateTo("/vote/success");
@@ -177,7 +177,7 @@ const submitVote = async () => {
                                 data-aos="fade-left"
                                 data-aos-delay="400"
                                 size="xl"
-                                :src="`https://robohash.org/${foundMatch.id}.png`"
+                                :src="`https://robohash.org/${foundMatch.first_name}_${foundMatch.last_name}_${foundMatch.middle_name}.png`"
                             />
                             <div
                                 class="flex gap-4 items-center"
@@ -267,10 +267,10 @@ const submitVote = async () => {
                                             :items="item.image_urls"
                                         >
                                             <img
-                                                :src="slide"
                                                 width="300"
                                                 height="400"
                                                 draggable="false"
+                                                :src="slide"
                                             />
                                         </UCarousel>
                                         <p>{{ item.description }}</p>
@@ -283,9 +283,9 @@ const submitVote = async () => {
             </div>
             <div v-if="validIdentity">
                 <NuxtTurnstile
+                    ref="turnstile"
                     v-model="state.turnstile"
                     :options="{ language: 'ru' }"
-                    ref="turnstile"
                 />
                 <UIcon
                     name="svg-spinners:ring-resize"
