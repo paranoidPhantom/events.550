@@ -60,27 +60,13 @@ const eventConfig = useEventConfig();
                     class="absolute left-1/2 top-1/2 -translate-x-1/2 text-3xl opacity-50 -z-10"
                 />
                 <iframe
-                    :src="`https://live.vkvideo.ru/app/embed/${eventConfig?.vk_stream_channel}`"
+                    :src="`https://player.twitch.tv/?channel=${eventConfig?.vk_stream_channel}&parent=localhost&muted=true`"
                     frameborder="0"
                     allowfullscreen="true"
                     scrolling="no"
                     class="w-full aspect-[16/9] rounded-lg"
                 />
             </div>
-        </template>
-        <template v-if="eventConfig?.voting_open">
-            <UDivider label="Голосование" />
-            <UAlert
-                v-if="alreadyVoted"
-                color="tree"
-                variant="subtle"
-                icon="game-icons:vote"
-                title="Вы уже проголосовали!"
-                description="Думаете что это ошибка? Подойдите к столику поддержки!"
-            />
-            <UButton v-else to="/vote" :disabled="alreadyVoted" class="w-fit">
-                Проголосовать
-            </UButton>
         </template>
     </div>
 </template>
