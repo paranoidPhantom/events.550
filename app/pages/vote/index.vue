@@ -1,15 +1,16 @@
 <script lang="ts" setup>
 import type { DBRow } from "~~/supabase/utils";
-import type { VoteState } from "~~/types/vote";
+import type { VoteRequestBody } from "~~/types/vote";
 
 definePageMeta({
-    name: "Проголосовать",
+    title: "Проголосовать",
 });
 
-const state = reactive<VoteState>({
+const state = reactive<VoteRequestBody>({
     first_name: "",
     last_name: "",
     middle_name: "",
+    grade: "",
     turnstile: undefined,
     selection: {},
 });
@@ -124,7 +125,7 @@ const submitVote = async () => {
 </script>
 
 <template>
-    <div class="flex flex-col gap-4 pt-[10%] relative">
+    <div class="flex flex-col gap-4 relative">
         <TransitionGroup name="slide-in">
             <div
                 class="space-y-4 transition-all duration-500 px-2"
@@ -292,15 +293,30 @@ const submitVote = async () => {
                     class="absolute left-1/2 top-1/2 -translate-y-1/2 -translate-x-1/2 text-tree-500 -z-10"
                 />
             </div>
-            <UButton
+            <div
                 v-if="state.turnstile && validSelection"
-                size="xl"
-                class="w-fit"
-                icon="line-md:file-document-twotone"
-                @click="submitVote"
+                class="flex flex-col gap-4"
             >
-                Проголосовать!
-            </UButton>
+                <p class="opacity-50 text-sm">
+                    Нажимая кнопку «Проголосовать», вы соглашаетесь с
+                    <UButton
+                        to="/privacy"
+                        variant="link"
+                        :padded="false"
+                        target="_blank"
+                    >
+                        Политикой конфеденциальности
+                    </UButton>
+                </p>
+                <UButton
+                    size="xl"
+                    class="w-fit"
+                    icon="line-md:file-document-twotone"
+                    @click="submitVote"
+                >
+                    Проголосовать!
+                </UButton>
+            </div>
         </TransitionGroup>
     </div>
 </template>
