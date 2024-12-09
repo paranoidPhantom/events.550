@@ -89,6 +89,42 @@ export type Database = {
           },
         ]
       }
+      "event-config": {
+        Row: {
+          cover_url: string | null
+          description: string | null
+          event: string
+          logo_url: string | null
+          name: string | null
+          restricted: boolean
+          vk_stream_channel: string | null
+          vk_stream_shown: boolean
+          voting_open: boolean
+        }
+        Insert: {
+          cover_url?: string | null
+          description?: string | null
+          event: string
+          logo_url?: string | null
+          name?: string | null
+          restricted?: boolean
+          vk_stream_channel?: string | null
+          vk_stream_shown?: boolean
+          voting_open?: boolean
+        }
+        Update: {
+          cover_url?: string | null
+          description?: string | null
+          event?: string
+          logo_url?: string | null
+          name?: string | null
+          restricted?: boolean
+          vk_stream_channel?: string | null
+          vk_stream_shown?: boolean
+          voting_open?: boolean
+        }
+        Relationships: []
+      }
       "fake-identities": {
         Row: {
           first_name: string
