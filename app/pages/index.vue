@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-const alreadyVoted = useCookie<boolean>("voted");
-
 const eventConfig = useEventConfig();
+
+const isdev = import.meta.dev;
 </script>
 
 <template>
@@ -60,7 +60,11 @@ const eventConfig = useEventConfig();
                     class="absolute left-1/2 top-1/2 -translate-x-1/2 text-3xl opacity-50 -z-10"
                 />
                 <iframe
-                    :src="`https://player.twitch.tv/?channel=${eventConfig?.vk_stream_channel}&parent=localhost&muted=true`"
+                    :src="`https://player.twitch.tv/?channel=${
+                        eventConfig?.vk_stream_channel
+                    }&parent=${
+                        isdev ? 'localhost' : 'events.hudalla.dev'
+                    }&muted=true`"
                     frameborder="0"
                     allowfullscreen="true"
                     scrolling="no"
