@@ -1,4 +1,42 @@
 <script lang="ts" setup>
+import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
+import type { Database } from "~~/supabase/db";
+import type { DBRow } from "~~/supabase/utils";
+
+// Set up listen for event config changes
+const eventConfig = useEventConfig();
+
+const supabase = useSupabaseClient<Database>();
+
+onMounted(() => {
+    supabase
+        .channel("event_config_realtime")
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "event-config" },
+            async (
+                payload: RealtimePostgresChangesPayload<DBRow<"event-config">>
+            ) => {
+                const { eventType, new: newRow, old: oldRow } = payload;
+                switch (eventType) {
+                    case "INSERT":
+                        break;
+                    case "UPDATE":
+                        if (oldRow.event === eventConfig.value?.event) {
+                            eventConfig.value = newRow;
+                        }
+                        break;
+                    case "DELETE":
+                        if (oldRow.event === eventConfig.value?.event) {
+                            eventConfig.value = null;
+                        }
+                        break;
+                }
+            }
+        )
+        .subscribe();
+});
+
 useScript({
     src: "https://cdn.jsdelivr.net/npm/@erikwatson/snowfall/dist/snowfall.min.js",
 });
