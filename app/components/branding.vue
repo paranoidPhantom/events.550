@@ -32,7 +32,7 @@ const snowDisabled = useCookie<boolean>("snow");
             <UButton
                 icon="mingcute:snow-fill"
                 color="white"
-                class="sm:ml-auto"
+                class="hidden sm:block sm:ml-auto"
                 @click="snowDisabled = snowDisabled ? undefined : 'true'"
             />
         </div>
