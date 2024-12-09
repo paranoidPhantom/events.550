@@ -49,11 +49,14 @@ const colorMode = useColorMode();
 colorMode.preference = "dark";
 
 const user = useSupabaseUser();
+
+const snowDisabled = useCookie<boolean>("snow");
 </script>
 
 <template>
     <div class="__root">
         <div
+            v-show="!snowDisabled"
             id="snow-container"
             class="fixed top-0 w-full h-screen z-20 pointer-events-none"
         />
@@ -68,7 +71,7 @@ const user = useSupabaseUser();
             <hr class="opacity-10" />
             <AdminNavigation v-if="user" />
             <NuxtPage />
-			<BrandedFooter />
+            <BrandedFooter />
         </div>
     </div>
 </template>
