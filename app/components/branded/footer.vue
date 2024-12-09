@@ -1,7 +1,7 @@
 <script lang="ts" setup></script>
 
 <template>
-    <footer class="pb-8">
+    <footer class="py-8">
         <UCard class="opacity-50 text-sm">
             <p>
                 По организационным вопросам:
