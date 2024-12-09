@@ -47,6 +47,8 @@ useScript({
 
 const colorMode = useColorMode();
 colorMode.preference = "dark";
+
+const user = useSupabaseUser();
 </script>
 
 <template>
@@ -59,8 +61,14 @@ colorMode.preference = "dark";
         <UNotifications />
 
         <!-- Actual content -->
-        <div class="px-4 sm:px-8 w-full mx-auto max-w-[800px]">
+        <div
+            class="px-4 sm:px-8 w-full mx-auto max-w-[800px] pt-[10%] space-y-2"
+        >
+            <Branding />
+            <hr class="opacity-10" />
+            <AdminNavigation v-if="user" />
             <NuxtPage />
+			<BrandedFooter />
         </div>
     </div>
 </template>
