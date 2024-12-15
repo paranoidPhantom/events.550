@@ -9,7 +9,7 @@ definePageMeta({
             data: { user },
         } = await auth.getUser();
         if (user) {
-            return navigateTo("/manage");
+            return navigateTo("/internal");
         }
     },
 });
@@ -60,7 +60,7 @@ async function submit() {
             icon: "i-heroicons-check-circle",
             timeout: 3000,
         });
-        navigateTo(callback ? (callback as RouteLocationRaw) : "/manage");
+        navigateTo(callback ? (callback as RouteLocationRaw) : "/internal");
         return;
     }
     waitingForRes.value = false;

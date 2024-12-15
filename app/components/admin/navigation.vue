@@ -5,7 +5,7 @@ const user = useSupabaseUser();
 const links = [
     {
         label: "Dashboard",
-        to: "/manage",
+        to: "/internal",
     },
     {
         label: "Home",
