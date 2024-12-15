@@ -10,9 +10,10 @@ const timeline = useTimeline();
 
 const supabase = useSupabaseClient<Database>();
 
+const db_realtime = supabase.channel("event_realtime");
+
 onMounted(() => {
-    supabase
-        .channel("event_realtime")
+    db_realtime
         .on(
             "postgres_changes",
             { event: "*", schema: "public", table: "event-config" },
