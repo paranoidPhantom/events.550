@@ -2,6 +2,8 @@
 const eventConfig = useEventConfig();
 
 const isdev = import.meta.dev;
+
+const currentCue = useLatestTimelineCue();
 </script>
 
 <template>
@@ -18,7 +20,7 @@ const isdev = import.meta.dev;
         <UAlert
             v-if="!eventConfig"
             title="На данный момент не проводиться мероприятий..."
-            description="Заглядывайте попзже!"
+            description="Заглядывайте позже!"
             icon="game-icons:binoculars"
             variant="soft"
         />
