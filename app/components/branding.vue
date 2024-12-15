@@ -16,7 +16,11 @@ const snowDisabled = useCookie<boolean>("snow");
                 data-aos="flip-up"
             />
             <div class="flex flex-col gap-1">
-                <h1 class="text-4xl" data-aos="flip-down" data-aos-delay="100">
+                <h1
+                    class="text-4xl text-tree-400"
+                    data-aos="flip-down"
+                    data-aos-delay="100"
+                >
                     events.550
                 </h1>
                 <p data-aos="fade-left" data-aos-delay="200">
@@ -30,8 +34,7 @@ const snowDisabled = useCookie<boolean>("snow");
                 </p>
             </div>
             <UButton
-                icon="mingcute:snow-fill"
-                color="white"
+                :icon="snowDisabled ? 'mdi:snowflake' : 'mdi:snowflake-alert'"
                 class="hidden sm:block sm:ml-auto"
                 @click="snowDisabled = snowDisabled ? undefined : 'true'"
             />
