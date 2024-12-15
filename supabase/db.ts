@@ -128,26 +128,23 @@ export type Database = {
       "fake-identities": {
         Row: {
           first_name: string
-          grade: string | null
+          grade: string
           id: string
           last_name: string
-          middle_name: string | null
           restricted: boolean
         }
         Insert: {
           first_name: string
-          grade?: string | null
+          grade: string
           id?: string
           last_name: string
-          middle_name?: string | null
           restricted?: boolean
         }
         Update: {
           first_name?: string
-          grade?: string | null
+          grade?: string
           id?: string
           last_name?: string
-          middle_name?: string | null
           restricted?: boolean
         }
         Relationships: []
@@ -155,29 +152,73 @@ export type Database = {
       identities: {
         Row: {
           first_name: string
-          grade: string | null
+          grade: string
           id: string
           last_name: string
-          middle_name: string | null
           restricted: boolean
         }
         Insert: {
           first_name: string
-          grade?: string | null
+          grade: string
           id?: string
           last_name: string
-          middle_name?: string | null
           restricted?: boolean
         }
         Update: {
           first_name?: string
-          grade?: string | null
+          grade?: string
           id?: string
           last_name?: string
-          middle_name?: string | null
           restricted?: boolean
         }
         Relationships: []
+      }
+      profiles: {
+        Row: {
+          id: string
+          perms: string[]
+        }
+        Insert: {
+          id: string
+          perms?: string[]
+        }
+        Update: {
+          id?: string
+          perms?: string[]
+        }
+        Relationships: []
+      }
+      timelines: {
+        Row: {
+          created_at: string
+          cues: Json[]
+          event: string
+          id: number
+          step: number
+        }
+        Insert: {
+          created_at?: string
+          cues?: Json[]
+          event: string
+          id?: number
+          step?: number
+        }
+        Update: {
+          created_at?: string
+          cues?: Json[]
+          event?: string
+          id?: number
+          step?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "timelines_event_fkey"
+            columns: ["event"]
+            isOneToOne: false
+            referencedRelation: "event-config"
+            referencedColumns: ["event"]
+          },
+        ]
       }
     }
     Views: {
@@ -291,3 +332,4 @@ export type CompositeTypes<
   : PublicCompositeTypeNameOrOptions extends keyof PublicSchema["CompositeTypes"]
     ? PublicSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
+
