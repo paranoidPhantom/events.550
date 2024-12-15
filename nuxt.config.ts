@@ -3,13 +3,14 @@ export default defineNuxtConfig({
     compatibilityDate: "2024-11-01",
     devtools: { enabled: true },
     modules: [
-        "@nuxt/fonts",
-        "@nuxtjs/supabase",
-        "@nuxt/eslint",
-        "@nuxtjs/turnstile",
-        "@nuxt/ui",
-        "nuxt-aos",
-        "@nuxtjs/seo",
+      "@nuxt/fonts",
+      "@nuxtjs/supabase",
+      "@nuxt/eslint",
+      "@nuxtjs/turnstile",
+      "@nuxt/ui",
+      "nuxt-aos",
+      "@nuxtjs/seo",
+      "nuxt-monaco-editor",
     ],
     future: {
         compatibilityVersion: 4,
@@ -19,7 +20,7 @@ export default defineNuxtConfig({
         redirectOptions: {
             login: "/auth",
             callback: "/confirm",
-            include: ["/manage"],
+            include: ["/internal"],
         },
     },
     turnstile: {
