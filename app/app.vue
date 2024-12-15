@@ -2,15 +2,17 @@
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "~~/supabase/db";
 import type { DBRow } from "~~/supabase/utils";
+import type { Timeline } from "~~/types/events";
 
-// Set up listen for event config changes
+// Set up listen for event config and timeline changes
 const eventConfig = useEventConfig();
+const timeline = useTimeline();
 
 const supabase = useSupabaseClient<Database>();
 
 onMounted(() => {
     supabase
-        .channel("event_config_realtime")
+        .channel("event_realtime")
         .on(
             "postgres_changes",
             { event: "*", schema: "public", table: "event-config" },
@@ -29,6 +31,31 @@ onMounted(() => {
                     case "DELETE":
                         if (oldRow.event === eventConfig.value?.event) {
                             eventConfig.value = null;
+                        }
+                        break;
+                }
+            }
+        )
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "timelines" },
+            async (payload: RealtimePostgresChangesPayload<Timeline>) => {
+                const { eventType, new: newRow, old: oldRow } = payload;
+                switch (eventType) {
+                    case "INSERT":
+                        if (newRow.event === eventConfig.value?.event) {
+                            useTimelineSetter(newRow);
+                        }
+                        break;
+                    case "UPDATE":
+                        if (newRow.event === eventConfig.value?.event) {
+                            useTimelineSetter(newRow);
+                        }
+                        break;
+                    case "DELETE":
+                        if (oldRow.event === timeline.value?.event) {
+                            useTimelineSetter(null);
+                            useTimeline();
                         }
                         break;
                 }
@@ -59,7 +86,6 @@ const snowDisabled = computed(() => {
 <template>
     <div class="__root">
         <div
-            v-show="!snowDisabled"
             id="snow-container"
             class="fixed top-0 w-full h-screen z-20 pointer-events-none transition-all duration-500"
             :style="{
