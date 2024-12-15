@@ -48,9 +48,12 @@ useScript({
 const colorMode = useColorMode();
 colorMode.preference = "dark";
 
-const user = useSupabaseUser();
-
-const snowDisabled = useCookie<boolean>("snow");
+const snowDisabled = computed(() => {
+    return (
+        useCookie<boolean>("snow").value ||
+        useRoute().path.startsWith("/internal")
+    );
+});
 </script>
 
 <template>
@@ -58,7 +61,10 @@ const snowDisabled = useCookie<boolean>("snow");
         <div
             v-show="!snowDisabled"
             id="snow-container"
-            class="fixed top-0 w-full h-screen z-20 pointer-events-none"
+            class="fixed top-0 w-full h-screen z-20 pointer-events-none transition-all duration-500"
+            :style="{
+                opacity: snowDisabled ? 0 : 1,
+            }"
         />
         <NuxtRouteAnnouncer />
         <UNotifications />
