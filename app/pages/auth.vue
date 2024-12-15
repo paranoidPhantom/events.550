@@ -58,6 +58,7 @@ async function submit() {
             id: "auth_event",
             title: "Вы успешно вошли",
             icon: "i-heroicons-check-circle",
+            color: "emerald",
             timeout: 3000,
         });
         navigateTo(callback ? (callback as RouteLocationRaw) : "/internal");
@@ -68,9 +69,21 @@ async function submit() {
     switch (error.message) {
         case "Invalid login credentials": {
             state.value.error = "Неверные логин или пароль";
+            break;
+        }
+        case "Email not confirmed": {
+            state.value.error = "verify";
+            break;
         }
     }
 }
+
+const verifyEmail = () => {
+    auth.resend({
+        email: state.value.email ?? "",
+        type: "signup",
+    });
+};
 </script>
 
 <template>
@@ -101,9 +114,22 @@ async function submit() {
                 <UFormGroup
                     label="Password"
                     name="password"
-                    :error="state.error"
+                    :error="state.error === 'verify' ? undefined : state.error"
                 >
                     <UInput v-model="state.password" type="password" />
+                    <UAlert
+                        v-if="state.error === 'verify'"
+                        class="mt-4"
+                        color="primary"
+                        variant="subtle"
+                        title="Почта не подтверждена!"
+                        :actions="[
+                            {
+                                label: 'Подтвердить',
+                                click: verifyEmail,
+                            },
+                        ]"
+                    />
                 </UFormGroup>
                 <UButton type="submit">
                     <UIcon
