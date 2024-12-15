@@ -3,7 +3,7 @@ import type { Database } from "~~/supabase/db";
 import type { VoteRequestBody } from "~~/types/vote";
 
 export default defineEventHandler(async (event) => {
-    const { first_name, last_name, middle_name, turnstile, selection } =
+    const { first_name, last_name, turnstile, selection } =
         await readBody<VoteRequestBody>(event);
     if (!first_name || !last_name || !turnstile || !selection) {
         throw createError({
@@ -54,7 +54,6 @@ export default defineEventHandler(async (event) => {
         .select()
         .eq("first_name", first_name)
         .eq("last_name", last_name)
-        .eq("middle_name", middle_name)
         .maybeSingle();
 
     if (idSearch) {

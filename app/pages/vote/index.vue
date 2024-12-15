@@ -9,7 +9,6 @@ definePageMeta({
 const state = reactive<VoteRequestBody>({
     first_name: "",
     last_name: "",
-    middle_name: "",
     grade: "",
     turnstile: undefined,
     selection: {},
@@ -18,7 +17,7 @@ const state = reactive<VoteRequestBody>({
 const { data: identities } = await useIdentities();
 
 const filteredIdentities = computed(() => {
-    if (!state.first_name && !state.last_name && !state.middle_name)
+    if (!state.first_name && !state.last_name && !state.grade)
         return identities.value;
     return identities.value?.filter((identity) => {
         return (
@@ -26,8 +25,7 @@ const filteredIdentities = computed(() => {
                 identity.first_name.includes(state.first_name)) &&
             (!state.last_name ||
                 identity.last_name.includes(state.last_name)) &&
-            (!state.middle_name ||
-                identity.middle_name?.includes(state.middle_name))
+            (!state.grade || identity.grade === state.grade)
         );
     });
 });
@@ -44,26 +42,29 @@ watch(filteredIdentities, (updatedFilteredIdentities) => {
     }
 });
 
-const nameEnumerators = computed(() => {
+const enumerateNames = (list: typeof identities.value) => {
+    if (!list) return { first: [], last: [], grade: [] };
     const first: Set<string> = new Set();
     const last: Set<string> = new Set();
-    const middle: Set<string> = new Set();
-    filteredIdentities.value?.forEach((identity) => {
+    const grade: Set<string> = new Set();
+    list.forEach((identity) => {
         first.add(identity.first_name);
         last.add(identity.last_name);
-        if (identity.middle_name) middle.add(identity.middle_name);
+        grade.add(identity.grade);
     });
     return {
         first: Array.from(first),
         last: Array.from(last),
-        middle: Array.from(middle),
+        grade: Array.from(grade),
     };
-});
+};
+
+const nameEnumerators = computed(() => enumerateNames(identities.value));
+const filteredNameEnumerators = computed(() =>
+    enumerateNames(filteredIdentities.value)
+);
 
 const resetState = () => {
-    state.first_name = "";
-    state.last_name = "";
-    state.middle_name = "";
     foundMatch.value = undefined;
 };
 
@@ -143,25 +144,37 @@ const submitVote = async () => {
             >
                 <h2 class="text-2xl font-semibold">Введите свои данные</h2>
                 <hr class="opacity-10" />
+                <UFormGroup label="Класс">
+                    <UInputMenu
+                        v-model="state.grade"
+                        placeholder="7Б"
+                        :options="
+                            state.grade
+                                ? nameEnumerators.grade
+                                : filteredNameEnumerators.grade
+                        "
+                    />
+                </UFormGroup>
                 <UFormGroup label="Фамилия">
                     <UInputMenu
                         v-model="state.last_name"
                         placeholder="Иванов"
-                        :options="nameEnumerators.last"
+                        :options="
+                            state.last_name
+                                ? nameEnumerators.last
+                                : filteredNameEnumerators.last
+                        "
                     />
                 </UFormGroup>
                 <UFormGroup label="Имя">
                     <UInputMenu
                         v-model="state.first_name"
                         placeholder="Иван"
-                        :options="nameEnumerators.first"
-                    />
-                </UFormGroup>
-                <UFormGroup label="Отчество">
-                    <UInputMenu
-                        v-model="state.middle_name"
-                        placeholder="Иванович"
-                        :options="nameEnumerators.middle"
+                        :options="
+                            state.first_name
+                                ? nameEnumerators.first
+                                : filteredNameEnumerators.first
+                        "
                     />
                 </UFormGroup>
             </div>
@@ -185,7 +198,7 @@ const submitVote = async () => {
                                 data-aos="fade-left"
                                 data-aos-delay="400"
                                 size="xl"
-                                :src="`https://robohash.org/${foundMatch.first_name}_${foundMatch.last_name}_${foundMatch.middle_name}.png`"
+                                :src="`https://robohash.org/${foundMatch.first_name}_${foundMatch.last_name}.png`"
                             />
                             <div
                                 class="flex gap-4 items-center"
@@ -195,7 +208,6 @@ const submitVote = async () => {
                                 <h4 class="text-xl">
                                     {{ foundMatch.last_name }}
                                     {{ foundMatch.first_name }}
-                                    {{ foundMatch.middle_name }}
                                 </h4>
                                 <UBadge
                                     class="w-fit"

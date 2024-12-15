@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
                 .map((identity) => ({
                     first_name: identity.first_name,
                     last_name: identity.last_name,
-                    middle_name: identity.middle_name,
                     grade: identity.grade,
                 }));
 
