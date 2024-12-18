@@ -2,13 +2,12 @@ import { useSupabaseClient, useState } from "#imports";
 import type { Database } from "~~/supabase/db";
 import type { Timeline } from "~~/types/events";
 
-const timelineState = () =>
-    useState<Timeline | null>("state_timeline", () => null);
-
-export const useTimelineSetter = (newTimeline: Timeline | null) => {
-    const lastUpdate = useState<number>("state_timeline_last_update", () => 0);
-
-    timelineState().value =
+export const useTimelineSetter = (
+    timeline: Ref<Timeline | null>,
+    lastUpdate: Ref<number>,
+    newTimeline: Timeline | null
+) => {
+    timeline.value =
         newTimeline === null
             ? null
             : {
@@ -22,19 +21,25 @@ export const useTimelineSetter = (newTimeline: Timeline | null) => {
 export const useTimeline = () => {
     // Get global state
     const timeline = useState<Timeline | null>("state_timeline", () => null);
+    const lastTimelineUpdate = useState<number>(
+        "state_timeline_last_update",
+        () => 0
+    );
 
     // Get supabase client
     const supabase = useSupabaseClient<Database>();
 
-    callOnce("fetch_timeline", async () => {
+    // If cast options are not loaded, fetch them
+    const fetchTimeline = async () => {
         const { data, error } = await supabase
             .from("timelines")
             .select()
             .returns<Timeline[]>()
             .maybeSingle();
         if (error) throw error;
-        if (data) useTimelineSetter(data);
-    });
+        if (data) useTimelineSetter(timeline, lastTimelineUpdate, data);
+    };
+    if (!timeline.value) fetchTimeline();
 
     return timeline;
 };

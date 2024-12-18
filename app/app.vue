@@ -7,12 +7,16 @@ import type { Timeline } from "~~/types/events";
 // Set up listen for event config and timeline changes
 const eventConfig = useEventConfig();
 const timeline = useTimeline();
+const lastTimelineUpdate = useState<number>(
+    "state_timeline_last_update",
+    () => 0
+);
 
 const supabase = useSupabaseClient<Database>();
 
 const db_realtime = supabase.channel("event_realtime");
 
-onMounted(() => {
+const subscribeToDBChanges = () => {
     db_realtime
         .on(
             "postgres_changes",
@@ -45,17 +49,29 @@ onMounted(() => {
                 switch (eventType) {
                     case "INSERT":
                         if (newRow.event === eventConfig.value?.event) {
-                            useTimelineSetter(newRow);
+                            useTimelineSetter(
+                                timeline,
+                                lastTimelineUpdate,
+                                newRow
+                            );
                         }
                         break;
                     case "UPDATE":
                         if (newRow.event === eventConfig.value?.event) {
-                            useTimelineSetter(newRow);
+                            useTimelineSetter(
+                                timeline,
+                                lastTimelineUpdate,
+                                newRow
+                            );
                         }
                         break;
                     case "DELETE":
                         if (oldRow.event === timeline.value?.event) {
-                            useTimelineSetter(null);
+                            useTimelineSetter(
+                                timeline,
+                                lastTimelineUpdate,
+                                null
+                            );
                             useTimeline();
                         }
                         break;
@@ -63,7 +79,9 @@ onMounted(() => {
             }
         )
         .subscribe();
-});
+};
+
+onMounted(subscribeToDBChanges);
 
 useScript({
     src: "https://cdn.jsdelivr.net/npm/@erikwatson/snowfall/dist/snowfall.min.js",
