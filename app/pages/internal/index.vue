@@ -1,7 +1,13 @@
 <script lang="ts" setup>
+import { useLocalStorage } from "@vueuse/core";
+import type { Database } from "~~/supabase/db";
+import type { DBRow } from "~~/supabase/utils";
+
 definePageMeta({
     layout: "empty",
 });
+
+const supabase = useSupabaseClient<Database>();
 
 const timeline = useTimeline();
 const lastTimelineUpdate = useState<number>("state_timeline_last_update");
@@ -18,13 +24,20 @@ const devMode = ref(false);
 
 const confirmGotoCue = async (index: number) => {
     pendingUpdateStep.value = true;
-    await $fetch("/api/cue", {
-        method: "PUT",
-        body: {
-            index,
-            timelineID: timeline.value?.id,
-        },
-    });
+    if (!timeline.value) return;
+    const { error } = await supabase
+        .from("timelines")
+        .update({
+            step: index,
+        })
+        .eq("id", timeline.value.id);
+    if (error) {
+        toast.add({
+            title: "Cue write failed",
+            description: error.message,
+            color: "rose",
+        });
+    }
 };
 
 const gotoCue = (event: MouseEvent, index: number) => {
