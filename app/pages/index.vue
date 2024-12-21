@@ -52,7 +52,7 @@ const currentCue = useLatestTimelineCue();
 
         <template
             v-if="
-                eventConfig?.vk_stream_shown && eventConfig?.vk_stream_channel
+                eventConfig?.stream_shown && eventConfig?.twitch_stream_channel
             "
         >
             <UDivider label="Смотрите в прямом эфире" />
@@ -63,7 +63,7 @@ const currentCue = useLatestTimelineCue();
                 />
                 <iframe
                     :src="`https://player.twitch.tv/?channel=${
-                        eventConfig?.vk_stream_channel
+                        eventConfig?.twitch_stream_channel
                     }&parent=${
                         isdev ? 'localhost' : 'events.hudalla.dev'
                     }&muted=true`"
