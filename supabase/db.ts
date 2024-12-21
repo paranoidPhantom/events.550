@@ -97,8 +97,8 @@ export type Database = {
           logo_url: string | null
           name: string | null
           restricted: boolean
-          vk_stream_channel: string | null
-          vk_stream_shown: boolean
+          stream_shown: boolean
+          twitch_stream_channel: string | null
           voting_open: boolean
         }
         Insert: {
@@ -108,8 +108,8 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           restricted?: boolean
-          vk_stream_channel?: string | null
-          vk_stream_shown?: boolean
+          stream_shown?: boolean
+          twitch_stream_channel?: string | null
           voting_open?: boolean
         }
         Update: {
@@ -119,8 +119,8 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           restricted?: boolean
-          vk_stream_channel?: string | null
-          vk_stream_shown?: boolean
+          stream_shown?: boolean
+          twitch_stream_channel?: string | null
           voting_open?: boolean
         }
         Relationships: []
