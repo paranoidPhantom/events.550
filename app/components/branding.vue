@@ -36,6 +36,7 @@ const snowDisabled = useCookie<boolean>("snow");
             <UButton
                 :icon="snowDisabled ? 'mdi:snowflake' : 'mdi:snowflake-alert'"
                 class="hidden sm:block sm:ml-auto"
+                color="white"
                 @click="snowDisabled = snowDisabled ? undefined : 'true'"
             />
         </div>
