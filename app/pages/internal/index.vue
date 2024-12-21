@@ -10,11 +10,14 @@ definePageMeta({
 const supabase = useSupabaseClient<Database>();
 
 const timeline = useTimeline();
+const myPerms = useMyPerms();
+const eventConfig = useEventConfig();
 const lastTimelineUpdate = useState<number>("state_timeline_last_update");
 const cues = useTimelineCues();
+const identities = useVoteStatus();
+const castOptions = useCastOptions();
 
 const latestCue = useLatestTimelineCue();
-const livestreamCue = useLatestTimelineCue("livestream");
 
 const pendingUpdateStep = ref(false);
 
@@ -70,89 +73,506 @@ watch(latestCue, (cue) => {
     }
 });
 watch(lastTimelineUpdate, () => (pendingUpdateStep.value = false));
+
+const currentTab = useLocalStorage("internal_current_tab", () => 0);
+
+const configState = ref<
+    Partial<Record<keyof DBRow<"event-config">, string | boolean | undefined>>
+>({});
+
+watchEffect(() => {
+    if (eventConfig.value) {
+        Object.keys(eventConfig.value).forEach(
+            (key) =>
+                (configState.value[key as keyof DBRow<"event-config">] =
+                    eventConfig.value
+                        ? eventConfig.value[
+                              key as unknown as keyof DBRow<"event-config">
+                          ] ?? undefined
+                        : "")
+        );
+    }
+});
+
+const changedConfigKeys = computed(() => {
+    if (!eventConfig.value) return [];
+    return Object.keys(configState.value).filter((key) =>
+        eventConfig.value
+            ? eventConfig.value[
+                  key as unknown as keyof DBRow<"event-config">
+              ] !== configState.value[key as keyof DBRow<"event-config">]
+            : false
+    );
+});
+
+const applyConfigChanges = async () => {
+    if (changedConfigKeys.value.length === 0 || !eventConfig.value) return;
+    const changes = new Map();
+    changedConfigKeys.value.forEach((key) => {
+        changes.set(
+            key,
+            configState.value[key as keyof DBRow<"event-config">] ?? null
+        );
+    });
+    const { error } = await supabase
+        .from("event-config")
+        .update(Object.fromEntries(changes))
+        .eq("event", eventConfig.value?.event);
+    if (error) {
+        toast.add({
+            title: "Config update failed",
+            description: error.message,
+            color: "rose",
+        });
+    } else {
+        toast.add({
+            title: "Config updated",
+            description: "Changes applied successfully",
+            color: "green",
+        });
+    }
+};
+
+const idColumns = [
+    {
+        label: "Фамилия",
+        key: "last_name",
+    },
+    {
+        label: "Имя",
+        key: "first_name",
+    },
+    {
+        label: "Класс",
+        key: "grade",
+    },
+    {
+        label: "Голос",
+        key: "info",
+    },
+];
+
+const deleteVote = async (id: string) => {
+    await supabase.from("casts").delete().eq("id", id);
+};
+
+const voteCreationState = ref<Record<string, Record<string, boolean>>>({});
+
+const stopWatchIdentities = watchEffect(() => {
+    if (identities.value) {
+        identities.value.forEach((identity) => {
+            voteCreationState.value[identity.id] = Object.fromEntries(
+                castOptions.value.map((option) => [option.author, false])
+            );
+        });
+        stopWatchIdentities();
+    }
+});
+
+const createVote = async (user_id: string) => {
+    const vote = Object.keys(voteCreationState.value[user_id])
+        .filter((key) => voteCreationState.value[user_id][key])
+        .map(
+            (author) =>
+                castOptions.value.find((option) => option.author === author)?.id
+        );
+    await supabase.from("casts").insert({
+        id: user_id,
+        selection_1: vote[0],
+        selection_2: vote[1],
+        selection_3: vote[2],
+    });
+};
+
+const idQuery = ref("");
+
+const filteredIdentities = computed(() => {
+    if (!idQuery.value) {
+        return identities.value;
+    }
+
+    return (identities.value ?? []).filter((person) => {
+        return Object.values(person).some((value) => {
+            return String(value)
+                .toLowerCase()
+                .includes(idQuery.value.toLowerCase());
+        });
+    });
+});
+
+const createUserState = reactive({
+    first_name: "",
+    last_name: "",
+    grade: "",
+});
+
+watch(idQuery, (query: string) => {
+    const [last_name, first_name, grade] = query.split(" ");
+    createUserState.last_name = last_name ?? "";
+    createUserState.first_name = first_name ?? "";
+    createUserState.grade = grade ?? "";
+});
+
+const createUser = async () => {
+    await supabase.from("identities").insert({
+        last_name: createUserState.last_name,
+        first_name: createUserState.first_name,
+        grade: createUserState.grade,
+    });
+    window.location.reload();
+};
+
+const castOptionEditState = reactive({
+    open: false,
+    selectedID: 0,
+    selectedImages: {},
+});
+
+const inspectCastOption = (id: number) => {
+    castOptionEditState.open = true;
+    castOptionEditState.selectedID = id;
+    castOptions.value
+        .find((option) => option.id === castOptionEditState.selectedID)
+        ?.image_urls.forEach((image) => {
+            castOptionEditState.selectedImages[image] = true;
+        });
+};
+
+// const { data: castOptionImages } = await useAsyncData(async () => {
+//     const { data } = await supabase.storage.from("vote-options").list();
+
+//     return (
+//         data?.map(
+//             (image) =>
+//                 `https://db.eu1.hudalla.dev/storage/v1/object/public/vote-options/${image.name}`
+//         ) ?? []
+//     );
+// });
 </script>
 
 <template>
     <div class="p-4">
         <AdminNavigation />
-        <div v-if="timeline?.step" class="space-y-4">
-            <h2 class="text-2xl font-semibold">Поток сигналов</h2>
-            <UCarousel v-slot="{ item: cue }" :items="cues">
-                <UCard
-                    :key="cue.index"
-                    :ui="{
-                        ring:
-                            timeline?.step === cue.index
-                                ? 'ring-primary-500 dark:ring-primary-400'
-                                : timeline?.step && timeline?.step > cue.index
-                                ? undefined
-                                : 'ring-gray-800 dark:ring-white',
-                    }"
-                    class="transition-all min-w-64 mr-2 ml-2 my-2"
+        <UTabs
+            v-if="myPerms?.length ?? 0 > 0"
+            v-model="currentTab"
+            :items="
+                myPerms?.map((perm) => ({
+                    label: perm.toUpperCase(),
+                    key: perm,
+                }))
+            "
+        >
+            <template #item="{ item: { key } }">
+                <div
+                    v-if="timeline?.step && key === 'config'"
+                    class="space-y-4"
                 >
-                    <div class="flex gap-2 flex-col">
-                        <p
-                            class="text-sm"
-                            :style="{
-                                opacity:
-                                    timeline?.step === cue.index ? '1' : '0.5',
+                    <h2 class="text-2xl font-semibold">Мероприятие</h2>
+                    <UCard>
+                        <div v-if="configState" class="space-y-4">
+                            <UFormGroup label="Код мероприятия">
+                                <UInput v-model="configState.event" disabled />
+                            </UFormGroup>
+                            <UFormGroup label="Название мероприятия">
+                                <UInput v-model="configState.name" />
+                            </UFormGroup>
+                            <UFormGroup label="Описание">
+                                <UTextarea
+                                    v-model="configState.description"
+                                    resize
+                                />
+                            </UFormGroup>
+                            <UFormGroup label="URL обложки">
+                                <UInput v-model="configState.cover_url" />
+                            </UFormGroup>
+                            <UFormGroup label="URL логотипа">
+                                <UInput v-model="configState.logo_url" />
+                            </UFormGroup>
+                            <UFormGroup label="Название канала на Twitch">
+                                <UInput
+                                    v-model="configState.twitch_stream_channel"
+                                />
+                            </UFormGroup>
+                            <UFormGroup label="Ограниченный доступ">
+                                <UToggle v-model="configState.restricted" />
+                            </UFormGroup>
+                            <UFormGroup label="Показывать стрим">
+                                <UToggle v-model="configState.stream_shown" />
+                            </UFormGroup>
+                            <UFormGroup label="Голосование открыто">
+                                <UToggle v-model="configState.voting_open" />
+                            </UFormGroup>
+                            <p v-if="changedConfigKeys.length > 0">
+                                Изменено: {{ changedConfigKeys.join(", ") }}
+                            </p>
+                            <UButton
+                                label="Применить изменения"
+                                :disabled="changedConfigKeys.length === 0"
+                                @click="applyConfigChanges"
+                            />
+                        </div>
+                    </UCard>
+                </div>
+                <div v-if="timeline?.step && key === 'cues'" class="space-y-4">
+                    <h2 class="text-2xl font-semibold">Поток сигналов</h2>
+                    <UCarousel v-slot="{ item: cue }" :items="cues">
+                        <UCard
+                            :key="cue.index"
+                            :ui="{
+                                ring:
+                                    timeline?.step === cue.index
+                                        ? 'ring-primary-500 dark:ring-primary-400'
+                                        : timeline?.step &&
+                                          timeline?.step > cue.index
+                                        ? undefined
+                                        : 'ring-gray-800 dark:ring-white',
                             }"
+                            class="transition-all min-w-64 mr-2 ml-2 my-2"
                         >
-                            {{ cue.index }}
-                        </p>
-                        <p class="transition-all">
-                            {{ cue.comment }}
-                        </p>
-                        <UButton
-                            v-if="timeline.step !== cue.index"
-                            icon="mdi:arrow-down"
-                            label="Переити"
-                            class="w-fit"
-                            variant="outline"
-                            :loading="pendingUpdateStep"
-                            @click="(event) => gotoCue(event, cue.index)"
-                        />
-                    </div>
-                </UCard>
-            </UCarousel>
-            <hr class="opacity-10" />
-            <div class="flex">
-                <UCard class="w-full">
-                    <template #header>
-                        <h2 class="text-xl font-semibold">Текущий сигнал</h2>
-                    </template>
-                    <UTabs
-                        :items="[
-                            { label: 'Информация', key: 'human' },
-                            { label: 'код', key: 'json' },
-                        ]"
-                    >
-                        <template #item="{ item: { key } }">
-                            <div v-if="key === 'human'"></div>
+                            <div class="flex gap-2 flex-col">
+                                <p
+                                    class="text-sm"
+                                    :style="{
+                                        opacity:
+                                            timeline?.step === cue.index
+                                                ? '1'
+                                                : '0.5',
+                                    }"
+                                >
+                                    {{ cue.index }}
+                                </p>
+                                <p class="transition-all">
+                                    {{ cue.comment }}
+                                </p>
+                                <UButton
+                                    v-if="timeline.step !== cue.index"
+                                    icon="mdi:arrow-down"
+                                    label="Переити"
+                                    class="w-fit"
+                                    variant="outline"
+                                    :loading="pendingUpdateStep"
+                                    @click="
+                                        (event) => gotoCue(event, cue.index)
+                                    "
+                                />
+                            </div>
+                        </UCard>
+                    </UCarousel>
+                    <hr class="opacity-10" />
+                    <div class="flex">
+                        <UCard class="w-full">
+                            <template #header>
+                                <h2 class="text-xl font-semibold">
+                                    Текущий сигнал
+                                </h2>
+                            </template>
                             <MonacoEditor
-                                v-else
                                 v-model="editorString"
                                 class="h-96 overflow-auto rounded-2xl"
                                 lang="json"
-                                :options="{ readOnly: true, theme: 'vs-dark' }"
+                                :options="{
+                                    readOnly: true,
+                                    theme: 'vs-dark',
+                                }"
                             />
-                        </template>
-                    </UTabs>
-                </UCard>
-            </div>
+                        </UCard>
+                    </div>
 
-            <UCard class="w-fit">
-                <div class="flex items-center gap-4 mb-4">
-                    <UToggle v-model="devMode" />
-                    <p class="font-bold">Режим разработки</p>
+                    <UCard class="w-fit">
+                        <div class="flex items-center gap-4 mb-4">
+                            <UToggle v-model="devMode" />
+                            <p class="font-bold">Режим разработки</p>
+                        </div>
+                        <p class="w-96 opacity-70">
+                            Режим следует включать только при подготовке шоу.
+                            Синхронизация с узлами не гарантируется, а
+                            критические операции не требуют подтверждения.
+                        </p>
+                    </UCard>
                 </div>
-                <p class="w-96 opacity-70">
-                    Режим следует включать только при подготовке шоу.
-                    Синхронизация с узлами не гарантируется, а критические
-                    операции не требуют подтверждения.
-                </p>
-            </UCard>
-        </div>
+                <div v-if="timeline?.step && key === 'votes'" class="space-y-4">
+                    <h2 class="text-2xl font-semibold">Голоса</h2>
+                    <UInput v-model="idQuery" placeholder="Поиск..." />
+                    <UTable :rows="filteredIdentities" :columns="idColumns">
+                        <template #empty-state>
+                            <UCard>
+                                <div class="flex items-center gap-4">
+                                    <UInput
+                                        v-model="createUserState.last_name"
+                                        placeholder="Фаимилия"
+                                    />
+                                    <UInput
+                                        v-model="createUserState.first_name"
+                                        placeholder="Имя"
+                                    />
+                                    <UInput
+                                        v-model="createUserState.grade"
+                                        placeholder="Класс"
+                                    />
+                                    <UButton
+                                        label="Добавить в БД"
+                                        @click="createUser"
+                                    />
+                                </div>
+                            </UCard>
+                        </template>
+                        <template #info-data="{ row }">
+                            <div class="actions-list flex items-center gap-4">
+                                <template v-if="row.vote">
+                                    <UBadge variant="subtle">{{
+                                        castOptions.find(
+                                            (option) =>
+                                                option.id ===
+                                                row.vote.selection_1
+                                        )?.author
+                                    }}</UBadge>
+                                    <UBadge variant="subtle">{{
+                                        castOptions.find(
+                                            (option) =>
+                                                option.id ===
+                                                row.vote.selection_2
+                                        )?.author
+                                    }}</UBadge>
+                                    <UBadge variant="subtle">{{
+                                        castOptions.find(
+                                            (option) =>
+                                                option.id ===
+                                                row.vote.selection_3
+                                        )?.author
+                                    }}</UBadge>
+                                    <UButton
+                                        color="red"
+                                        variant="soft"
+                                        label="Удалить голос"
+                                        @click="deleteVote(row.vote.id)"
+                                    />
+                                </template>
+                                <div
+                                    v-else
+                                    class="flex items-center gap-4 flex-wrap"
+                                >
+                                    <div
+                                        v-for="option in castOptions"
+                                        :key="option.id"
+                                        class="flex items-center gap-2"
+                                    >
+                                        <UTooltip :text="option.name">
+                                            <UBadge variant="subtle">
+                                                <p class="mr-4">
+                                                    {{ option.author }}
+                                                </p>
+
+                                                <UCheckbox
+                                                    v-model="
+													(voteCreationState[row.id] as Record<string, boolean>)[
+														option.author
+													]
+												"
+                                                    :disabled="
+                                                        voteCreationState[
+                                                            row.id
+                                                        ] &&
+                                                        Object.values(
+                                                            voteCreationState[
+                                                                row.id
+                                                            ]
+                                                        ).filter(Boolean)
+                                                            .length >= 3 &&
+                                                        !voteCreationState[
+                                                            row.id
+                                                        ][option.author] ===
+                                                            true
+                                                    "
+                                                />
+                                            </UBadge>
+                                        </UTooltip>
+                                    </div>
+                                    <UButton
+                                        color="green"
+                                        variant="soft"
+                                        label="Создать голос"
+                                        :disabled="
+                                            Object.values(
+                                                voteCreationState[row.id]
+                                            ).filter(Boolean).length !== 3
+                                        "
+                                        @click="createVote(row.id)"
+                                    />
+                                </div>
+                            </div>
+                        </template>
+                    </UTable>
+                </div>
+                <div
+                    v-if="timeline?.step && key === 'vote-options'"
+                    class="space-y-4"
+                >
+                    <h2 class="text-2xl font-semibold">Варианты голосования</h2>
+                    <!-- <UModal v-model="castOptionEditState.open">
+                        <UCard>
+                            <UCarousel
+                                v-slot="{ item: image }"
+                                :items="
+                                    castOptions.find(
+                                        (option) =>
+                                            option.id ===
+                                            castOptionEditState.selectedID
+                                    )?.image_urls ?? []
+                                "
+                            >
+                                <div class="flex flex-col items-center gap-4">
+                                    <img
+                                        :key="image"
+                                        :src="image"
+                                        alt="Image"
+                                        class="h-48"
+                                    />
+                                    <UCheckbox
+                                        v-model="
+                                            castOptionEditState.selectedImages[
+                                                image
+                                            ]
+                                        "
+                                    />
+                                </div>
+                            </UCarousel>
+                        </UCard>
+                    </UModal> -->
+                    <div class="flex gap-4 flex-wrap">
+                        <UCard
+                            v-for="option in castOptions"
+                            :key="option.id"
+                            class="w-96"
+                        >
+                            <div class="space-y-4">
+                                <UFormGroup label="Название номера">
+                                    <UInput v-model="option.name" />
+                                </UFormGroup>
+                                <UFormGroup label="Описание">
+                                    <UTextarea
+                                        v-model="option.description"
+                                        resize
+                                    />
+                                </UFormGroup>
+                                <UFormGroup label="Исполнитель">
+                                    <UInput v-model="option.author" />
+                                </UFormGroup>
+                                <UButton label="Картинки"
+                                @click="inspectCastOption(option.id)" " />
+                            </div>
+                        </UCard>
+                    </div>
+                </div>
+            </template>
+        </UTabs>
+        <UAlert
+            v-else-if="myPerms"
+            color="yellow"
+            variant="subtle"
+            title="Вам еще не выдали права..."
+            description="Сообщите свой UID/Почту Андрею"
+        />
     </div>
 </template>
 
