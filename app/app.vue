@@ -12,6 +12,8 @@ const lastTimelineUpdate = useState<number>(
     () => 0
 );
 
+const votes = useState<Array<DBRow<"casts">> | null>("state_votes", () => null);
+
 const supabase = useSupabaseClient<Database>();
 
 const db_realtime = supabase.channel("event_realtime");
@@ -75,6 +77,20 @@ const subscribeToDBChanges = () => {
                             useTimeline();
                         }
                         break;
+                }
+            }
+        )
+        .on(
+            "postgres_changes",
+            { event: "*", schema: "public", table: "casts" },
+            async (payload: RealtimePostgresChangesPayload<DBRow<"casts">>) => {
+                const { eventType, new: newRow, old: oldRow } = payload;
+                if (eventType === "INSERT") {
+                    votes.value?.push(newRow);
+                } else if (eventType === "DELETE") {
+                    votes.value = (votes.value ?? []).filter(
+                        (vote) => vote.id !== oldRow.id
+                    );
                 }
             }
         )
