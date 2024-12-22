@@ -313,6 +313,34 @@ const uploadPrompt = () => {
     };
     input.click();
 };
+
+const addCastOptionState = reactive({
+    name: "",
+    description: "",
+    author: "",
+});
+
+const addCastOption = async () => {
+    const { error } = await supabase
+        .from("cast-options")
+        .insert({ ...addCastOptionState, image_urls: [] });
+    if (error) {
+        toast.add({
+            title: "Cast option creation failed",
+            description: error.message,
+            color: "rose",
+        });
+    } else {
+        toast.add({
+            title: "Cast option created",
+            description: "Changes applied successfully",
+            color: "green",
+        });
+        addCastOptionState.name = "";
+        addCastOptionState.description = "";
+        addCastOptionState.author = "";
+    }
+};
 </script>
 
 <template>
@@ -690,6 +718,34 @@ const uploadPrompt = () => {
                                         "
                                     />
                                 </div>
+                            </div>
+                        </UCard>
+                        <UCard class="w-96 h-fit">
+                            <div class="space-y-4">
+                                <h3 class="text-xl font-semibold">
+                                    Создать номер
+                                </h3>
+                                <hr class="opacity-10 my-4" />
+                                <UFormGroup label="Название номера">
+                                    <UInput v-model="addCastOptionState.name" />
+                                </UFormGroup>
+                                <UFormGroup label="Описание">
+                                    <UTextarea
+                                        v-model="addCastOptionState.description"
+                                        resize
+                                    />
+                                </UFormGroup>
+                                <UFormGroup label="Исполнитель">
+                                    <UInput
+                                        v-model="addCastOptionState.author"
+                                    />
+                                </UFormGroup>
+
+                                <UButton
+                                    label="Добавить"
+                                    color="green"
+                                    @click="addCastOption"
+                                />
                             </div>
                         </UCard>
                     </div>
