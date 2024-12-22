@@ -660,7 +660,7 @@ const uploadPrompt = () => {
                                 </UFormGroup>
 
                                 <MonacoEditor
-                                    class="h-96"
+                                    class="h-64"
                                     :model-value="
                                         JSON.stringify(
                                             option.image_urls,
@@ -673,14 +673,23 @@ const uploadPrompt = () => {
                                         readOnly: true,
                                         theme: 'vs-dark',
                                     }"
-                                    @click="inspectCastOption(option.id)"
                                 />
+                                <div class="flex flex-col gap-4">
+                                    <UButton
+                                        label="Редактировать медиа список"
+                                        color="yellow"
+                                        variant="soft"
+                                        @click="inspectCastOption(option.id)"
+                                    />
 
-                                <UButton
-                                    label="Сохранить"
-                                    color="green"
-                                    @click="saveChangesToCastOption(option.id)"
-                                />
+                                    <UButton
+                                        label="Сохранить"
+                                        color="green"
+                                        @click="
+                                            saveChangesToCastOption(option.id)
+                                        "
+                                    />
+                                </div>
                             </div>
                         </UCard>
                     </div>
