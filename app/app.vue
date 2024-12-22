@@ -156,6 +156,13 @@ const snowDisabled = computed(() => {
 
 <template>
     <div class="__root">
+        <Head>
+            <Link
+                rel="icon"
+                type="image/png"
+                :href="eventConfig?.logo_url ?? '/favicon.svg'"
+            />
+        </Head>
         <div
             id="snow-container"
             class="fixed top-0 w-full h-screen z-20 pointer-events-none transition-all duration-500"
