@@ -299,7 +299,7 @@ const uploadPrompt = () => {
         if (!input.files) return;
         const files = Array.from(input.files);
         const promises = files.map((file) => {
-            const path = `${file.name}_${Date.now()}`;
+            const path = `T=${Date.now()}_${file.name}`;
             return supabase.storage
                 .from("vote-options")
                 .upload(path, file)
