@@ -263,7 +263,7 @@ const saveChangesToCastOption = async (id: number) => {
     }
 };
 
-const castOptionImages = ref([]);
+const castOptionImages = ref<Array<string>>([]);
 
 onMounted(async () => {
     const { data } = await supabase.storage.from("vote-options").list();
@@ -286,6 +286,30 @@ const saveChangesToCastOptionImages = async () => {
     if (editedIndex && castOptions.value[editedIndex])
         castOptions.value[editedIndex].image_urls = selectedImages;
     castOptionEditState.open = false;
+};
+
+const uploadPrompt = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = true;
+    input.onchange = async () => {
+        if (!input.files) return;
+        const files = Array.from(input.files);
+        const promises = files.map((file) => {
+            const path = `${file.name}`;
+            return supabase.storage
+                .from("vote-options")
+                .upload(path, file)
+                .then(() => {
+                    castOptionImages.value.push(
+                        `https://db.eu1.hudalla.dev/storage/v1/object/public/vote-options/${path}`
+                    );
+                });
+        });
+        await Promise.all(promises);
+    };
+    input.click();
 };
 </script>
 
@@ -550,16 +574,17 @@ const saveChangesToCastOptionImages = async () => {
                     <h2 class="text-2xl font-semibold">Варианты голосования</h2>
                     <UModal v-model="castOptionEditState.open">
                         <UCard>
-                            <UCarousel
-                                v-slot="{ item: image }"
-                                :items="castOptionImages"
-                            >
-                                <div class="flex flex-col items-center gap-4">
+                            <div class="flex flex-wrap gap-4 overflow-auto">
+                                <div
+                                    v-for="(image, index) in castOptionImages"
+                                    :key="index"
+                                    class="flex flex-col items-center gap-4"
+                                >
                                     <img
                                         :key="image"
                                         :src="image"
                                         alt="Image"
-                                        class="h-48 transition-all"
+                                        class="h-48 transition-all cursor-pointer"
                                         :style="{
                                             opacity: castOptionEditState
                                                 .selectedImages[image]
@@ -570,16 +595,31 @@ const saveChangesToCastOptionImages = async () => {
                                                 ? 'none'
                                                 : 'grayscale(100%)',
                                         }"
-                                    />
-                                    <UCheckbox
-                                        v-model="
+                                        @click="
                                             castOptionEditState.selectedImages[
                                                 image
-                                            ]
+                                            ] =
+                                                !castOptionEditState
+                                                    .selectedImages[image]
                                         "
                                     />
                                 </div>
-                            </UCarousel>
+                                <div
+                                    class="py-4 flex flex-col items-center gap-4 w-full"
+                                >
+                                    <h3
+                                        class="text-center font-semibold text-xl"
+                                    >
+                                        Добавить изображения
+                                    </h3>
+                                    <UButton
+                                        label="Загрузить"
+                                        color="yellow"
+                                        icon="material-symbols:database-upload-rounded"
+                                        @click="uploadPrompt"
+                                    />
+                                </div>
+                            </div>
                             <hr class="opacity-10 my-2" />
                             <p class="mb-2">
                                 Выбрано
@@ -591,7 +631,7 @@ const saveChangesToCastOptionImages = async () => {
                                 изображений
                             </p>
                             <UButton
-                                label="Сохранить"
+                                label="Применить"
                                 color="green"
                                 @click="saveChangesToCastOptionImages"
                             />
