@@ -158,14 +158,13 @@ const deleteVote = async (id: string) => {
 
 const voteCreationState = ref<Record<string, Record<string, boolean>>>({});
 
-const stopWatchIdentities = watchEffect(() => {
+watchEffect(() => {
     if (identities.value) {
         identities.value.forEach((identity) => {
             voteCreationState.value[identity.id] = Object.fromEntries(
                 castOptions.value.map((option) => [option.author, false])
             );
         });
-        stopWatchIdentities();
     }
 });
 
@@ -222,7 +221,11 @@ const createUser = async () => {
     window.location.reload();
 };
 
-const castOptionEditState = reactive({
+const castOptionEditState = reactive<{
+    open: boolean;
+    selectedID: number;
+    selectedImages: Record<string, boolean>;
+}>({
     open: false,
     selectedID: 0,
     selectedImages: {},
@@ -238,16 +241,52 @@ const inspectCastOption = (id: number) => {
         });
 };
 
-// const { data: castOptionImages } = await useAsyncData(async () => {
-//     const { data } = await supabase.storage.from("vote-options").list();
+const saveChangesToCastOption = async (id: number) => {
+    const { error } = await supabase
+        .from("cast-options")
+        .update({
+            ...castOptions.value.find((option) => option.id === id),
+        })
+        .eq("id", id);
+    if (error) {
+        toast.add({
+            title: "Cast option update failed",
+            description: error.message,
+            color: "rose",
+        });
+    } else {
+        toast.add({
+            title: "Cast option updated",
+            description: "Changes applied successfully",
+            color: "green",
+        });
+    }
+};
 
-//     return (
-//         data?.map(
-//             (image) =>
-//                 `https://db.eu1.hudalla.dev/storage/v1/object/public/vote-options/${image.name}`
-//         ) ?? []
-//     );
-// });
+const castOptionImages = ref([]);
+
+onMounted(async () => {
+    const { data } = await supabase.storage.from("vote-options").list();
+
+    castOptionImages.value =
+        data?.map(
+            (image) =>
+                `https://db.eu1.hudalla.dev/storage/v1/object/public/vote-options/${image.name}`
+        ) ?? [];
+});
+
+const saveChangesToCastOptionImages = async () => {
+    const selectedImages = Object.keys(
+        castOptionEditState.selectedImages
+    ).filter((image) => castOptionEditState.selectedImages[image]);
+    const editedIndex = castOptions.value.findIndex(
+        (option) => option.id === castOptionEditState.selectedID
+    );
+
+    if (editedIndex && castOptions.value[editedIndex])
+        castOptions.value[editedIndex].image_urls = selectedImages;
+    castOptionEditState.open = false;
+};
 </script>
 
 <template>
@@ -509,24 +548,28 @@ const inspectCastOption = (id: number) => {
                     class="space-y-4"
                 >
                     <h2 class="text-2xl font-semibold">Варианты голосования</h2>
-                    <!-- <UModal v-model="castOptionEditState.open">
+                    <UModal v-model="castOptionEditState.open">
                         <UCard>
                             <UCarousel
                                 v-slot="{ item: image }"
-                                :items="
-                                    castOptions.find(
-                                        (option) =>
-                                            option.id ===
-                                            castOptionEditState.selectedID
-                                    )?.image_urls ?? []
-                                "
+                                :items="castOptionImages"
                             >
                                 <div class="flex flex-col items-center gap-4">
                                     <img
                                         :key="image"
                                         :src="image"
                                         alt="Image"
-                                        class="h-48"
+                                        class="h-48 transition-all"
+                                        :style="{
+                                            opacity: castOptionEditState
+                                                .selectedImages[image]
+                                                ? '1'
+                                                : '0.5',
+                                            filter: castOptionEditState
+                                                .selectedImages[image]
+                                                ? 'none'
+                                                : 'grayscale(100%)',
+                                        }"
                                     />
                                     <UCheckbox
                                         v-model="
@@ -537,8 +580,23 @@ const inspectCastOption = (id: number) => {
                                     />
                                 </div>
                             </UCarousel>
+                            <hr class="opacity-10 my-2" />
+                            <p class="mb-2">
+                                Выбрано
+                                {{
+                                    Object.values(
+                                        castOptionEditState.selectedImages
+                                    ).filter(Boolean).length
+                                }}
+                                изображений
+                            </p>
+                            <UButton
+                                label="Сохранить"
+                                color="green"
+                                @click="saveChangesToCastOptionImages"
+                            />
                         </UCard>
-                    </UModal> -->
+                    </UModal>
                     <div class="flex gap-4 flex-wrap">
                         <UCard
                             v-for="option in castOptions"
@@ -558,8 +616,29 @@ const inspectCastOption = (id: number) => {
                                 <UFormGroup label="Исполнитель">
                                     <UInput v-model="option.author" />
                                 </UFormGroup>
-                                <UButton label="Картинки"
-                                @click="inspectCastOption(option.id)" " />
+
+                                <MonacoEditor
+                                    class="h-96"
+                                    :model-value="
+                                        JSON.stringify(
+                                            option.image_urls,
+                                            null,
+                                            2
+                                        )
+                                    "
+                                    lang="json"
+                                    :options="{
+                                        readOnly: true,
+                                        theme: 'vs-dark',
+                                    }"
+                                    @click="inspectCastOption(option.id)"
+                                />
+
+                                <UButton
+                                    label="Сохранить"
+                                    color="green"
+                                    @click="saveChangesToCastOption(option.id)"
+                                />
                             </div>
                         </UCard>
                     </div>
