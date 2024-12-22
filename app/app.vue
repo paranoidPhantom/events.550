@@ -7,6 +7,7 @@ import type { Timeline } from "~~/types/events";
 // Set up listen for event config and timeline changes
 const eventConfig = useEventConfig();
 const timeline = useTimeline();
+const castOptions = useCastOptions();
 const lastTimelineUpdate = useState<number>(
     "state_timeline_last_update",
     () => 0
@@ -17,6 +18,7 @@ const votes = useState<Array<DBRow<"casts">> | null>("state_votes", () => null);
 const supabase = useSupabaseClient<Database>();
 
 const db_realtime = supabase.channel("event_realtime");
+const db_realtime_admin = supabase.channel("event_realtime_admin");
 
 const subscribeToDBChanges = () => {
     db_realtime
@@ -80,22 +82,56 @@ const subscribeToDBChanges = () => {
                 }
             }
         )
-        .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "casts" },
-            async (payload: RealtimePostgresChangesPayload<DBRow<"casts">>) => {
-                const { eventType, new: newRow, old: oldRow } = payload;
-                if (eventType === "INSERT") {
-                    votes.value?.push(newRow);
-                } else if (eventType === "DELETE") {
-                    votes.value = (votes.value ?? []).filter(
-                        (vote) => vote.id !== oldRow.id
-                    );
-                }
-            }
-        )
         .subscribe();
 };
+
+const adminPerms = useMyPerms();
+
+const adminPermsWatcher = watch(adminPerms, (newPerms) => {
+    if (newPerms) {
+        adminPermsWatcher.stop();
+        db_realtime_admin
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "casts" },
+                async (
+                    payload: RealtimePostgresChangesPayload<DBRow<"casts">>
+                ) => {
+                    const { eventType, new: newRow, old: oldRow } = payload;
+                    if (eventType === "INSERT") {
+                        votes.value?.push(newRow);
+                    } else if (eventType === "DELETE") {
+                        votes.value = (votes.value ?? []).filter(
+                            (vote) => vote.id !== oldRow.id
+                        );
+                    }
+                }
+            )
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "cast-options" },
+                async (
+                    payload: RealtimePostgresChangesPayload<
+                        DBRow<"cast-options">
+                    >
+                ) => {
+                    const { eventType, new: newRow, old: oldRow } = payload;
+                    if (eventType === "INSERT") {
+                        castOptions.value.push(newRow);
+                    } else if (eventType === "DELETE") {
+                        castOptions.value = castOptions.value.filter(
+                            (option) => option.id !== oldRow.id
+                        );
+                    } else if (eventType === "UPDATE") {
+                        castOptions.value = castOptions.value.map((option) =>
+                            option.id === newRow.id ? newRow : option
+                        );
+                    }
+                }
+            )
+            .subscribe();
+    }
+});
 
 onMounted(subscribeToDBChanges);
 
