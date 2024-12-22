@@ -14,7 +14,6 @@
 	"dependencies": {
 		"@nuxt/eslint": "^0.7.2",
 		"@nuxt/fonts": "^0.10.2",
-		"@nuxt/scripts": "^0.9.5",
 		"@nuxt/ui": "^2.19.2",
 		"@nuxtjs/seo": "^2.0.2",
 		"@nuxtjs/supabase": "^1.4.3",
