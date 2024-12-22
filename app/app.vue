@@ -179,3 +179,9 @@ const snowDisabled = computed(() => {
         </NuxtLayout>
     </div>
 </template>
+
+<style lang="scss">
+:root {
+    interpolate-size: allow-keywords;
+}
+</style>

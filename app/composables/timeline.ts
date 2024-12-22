@@ -18,7 +18,7 @@ export const useTimelineSetter = (
     lastUpdate.value = Date.now();
 };
 
-export const useTimeline = () => {
+export const useTimeline = (override: string) => {
     // Get global state
     const timeline = useState<Timeline | null>("state_timeline", () => null);
     const lastTimelineUpdate = useState<number>(
@@ -39,7 +39,7 @@ export const useTimeline = () => {
         if (error) throw error;
         if (data) useTimelineSetter(timeline, lastTimelineUpdate, data);
     };
-    if (!timeline.value) fetchTimeline();
+    if (!timeline.value || override === "refetch") fetchTimeline();
 
     return timeline;
 };

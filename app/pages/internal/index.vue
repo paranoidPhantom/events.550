@@ -49,7 +49,7 @@ const gotoCue = (event: MouseEvent, index: number) => {
         confirmGotoCue(index);
         return;
     }
-    if (event.shiftKey) {
+    if (event.metaKey) {
         confirmGotoCue(index);
         return;
     }
@@ -66,10 +66,12 @@ const gotoCue = (event: MouseEvent, index: number) => {
 };
 
 const editorString = ref("");
+const initialEditorString = ref("");
 
 watch(latestCue, (cue) => {
     if (cue) {
         editorString.value = JSON.stringify(cue, null, 2);
+        initialEditorString.value = JSON.stringify(cue, null, 2);
     }
 });
 watch(lastTimelineUpdate, () => (pendingUpdateStep.value = false));
@@ -341,6 +343,34 @@ const addCastOption = async () => {
         addCastOptionState.author = "";
     }
 };
+
+const updateCue = async () => {
+    if (timeline.value) {
+        const { error } = await supabase
+            .from("timelines")
+            .update({
+                cues: timeline.value.cues.map((cue) =>
+                    cue.index === timeline.value?.step
+                        ? JSON.parse(editorString.value)
+                        : cue
+                ),
+            })
+            .eq("event", timeline.value.event);
+        if (error) {
+            toast.add({
+                title: "Cue write failed",
+                description: error.message,
+                color: "rose",
+            });
+        } else {
+            toast.add({
+                title: "Cue updated",
+                description: "Changes applied successfully",
+                color: "green",
+            });
+        }
+    }
+};
 </script>
 
 <template>
@@ -460,14 +490,60 @@ const addCastOption = async () => {
                                     Текущий сигнал
                                 </h2>
                             </template>
+                            <p>
+                                <span class="opacity-50"> На экране: </span>
+                                <span
+                                    :style="{
+                                        color:
+                                            latestCue?.stageDisplay?.type ===
+                                            'color'
+                                                ? latestCue.stageDisplay.content
+                                                : undefined,
+                                    }"
+                                    >{{
+                                        latestCue?.stageDisplay?.content
+                                    }}</span
+                                >
+                                ({{
+                                    {
+                                        video: "Видео",
+                                        image: "Картинка",
+                                        color: "Цвет",
+                                        clear: "Ничего",
+                                    }[latestCue?.stageDisplay?.type ?? "clear"]
+                                }})
+                            </p>
+                            <p>
+                                <span class="opacity-50">Диалоги:</span>
+                                {{ latestCue?.dialogs }}
+                            </p>
+                            <p>
+                                <span class="opacity-50">Комментарии:</span>
+                                {{ latestCue?.comment }}
+                            </p>
+                            <p>
+                                <span class="opacity-50"
+                                    >Текст в прямом эфире:</span
+                                >
+                                {{ latestCue?.livestream?.overlayText }}
+                            </p>
+                            <p>
+                                <span class="opacity-50">На сайте:</span>
+                                {{ latestCue?.website?.headline }}
+                            </p>
+                            <hr class="opacity-10 my-4" />
                             <MonacoEditor
                                 v-model="editorString"
                                 class="h-96 overflow-auto rounded-2xl"
                                 lang="json"
                                 :options="{
-                                    readOnly: true,
                                     theme: 'vs-dark',
                                 }"
+                            />
+                            <UButton
+                                label="Обновить"
+                                :disabled="initialEditorString === editorString"
+                                @click="updateCue"
                             />
                         </UCard>
                     </div>

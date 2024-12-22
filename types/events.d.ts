@@ -7,7 +7,7 @@ export interface Cue {
     // When the timestamp reaches 0, a fitting message will be generated (ex. 'Event will start soon...').
     timestamp?: number; // Unix timestamp of when the cue is supposed to take effect (explusively for the purpose of generating a countdown timer)
     stageDisplay?: {
-        type: "color" | "image" | "video" | "yt_video";
+        type: "color" | "image" | "video";
         content: string; // Content URL / Hex code
     };
     stageCue?: {
