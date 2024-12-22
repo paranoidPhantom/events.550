@@ -285,7 +285,7 @@ const saveChangesToCastOptionImages = async () => {
         (option) => option.id === castOptionEditState.selectedID
     );
 
-    if (editedIndex && castOptions.value[editedIndex])
+    if (editedIndex !== -1 && castOptions.value[editedIndex])
         castOptions.value[editedIndex].image_urls = selectedImages;
     castOptionEditState.open = false;
 };
