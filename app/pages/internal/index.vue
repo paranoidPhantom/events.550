@@ -584,7 +584,7 @@ const uploadPrompt = () => {
                                         :key="image"
                                         :src="image"
                                         alt="Image"
-                                        class="h-48 transition-all cursor-pointer"
+                                        class="h-48 transition-all cursor-pointer object-cover"
                                         :style="{
                                             opacity: castOptionEditState
                                                 .selectedImages[image]
