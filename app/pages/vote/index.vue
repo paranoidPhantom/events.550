@@ -285,6 +285,7 @@ const submitVote = async () => {
                                                 container: 'rounded-lg',
                                             }"
                                             :items="item.image_urls"
+                                            class="mb-4"
                                         >
                                             <img
                                                 width="300"
