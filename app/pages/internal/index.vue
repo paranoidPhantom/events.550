@@ -269,10 +269,12 @@ onMounted(async () => {
     const { data } = await supabase.storage.from("vote-options").list();
 
     castOptionImages.value =
-        data?.map(
-            (image) =>
-                `https://db.eu1.hudalla.dev/storage/v1/object/public/vote-options/${image.name}`
-        ) ?? [];
+        data
+            ?.filter((entity) => entity.name !== ".emptyFolderPlaceholder")
+            .map(
+                (image) =>
+                    `https://db.eu1.hudalla.dev/storage/v1/object/public/vote-options/${image.name}`
+            ) ?? [];
 });
 
 const saveChangesToCastOptionImages = async () => {
@@ -297,7 +299,7 @@ const uploadPrompt = () => {
         if (!input.files) return;
         const files = Array.from(input.files);
         const promises = files.map((file) => {
-            const path = `${file.name}`;
+            const path = `${file.name}_${Date.now()}`;
             return supabase.storage
                 .from("vote-options")
                 .upload(path, file)
