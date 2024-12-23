@@ -183,5 +183,8 @@ const snowDisabled = computed(() => {
 <style lang="scss">
 :root {
     interpolate-size: allow-keywords;
+    body: {
+        background-color: black;
+    }
 }
 </style>
