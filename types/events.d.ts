@@ -19,6 +19,7 @@ export interface Cue {
     website?: {
         headline: string; // Audition name
     };
+    audio: string; // What to play on this cue
 }
 
 export type Timeline = Omit<DBRow<"timelines">, "cues"> & {

@@ -3,14 +3,16 @@ definePageMeta({
     layout: "empty",
 });
 
+const currentCue = useLatestTimelineCue();
 const projection = useLatestTimelineCue("stageDisplay");
 </script>
 
 <template>
-    <div>
+    <div v-show="projection?.stageDisplay?.content">
+        <audio :src="currentCue?.audio"></audio>
         <img
             v-if="projection?.stageDisplay?.type === 'image'"
-            class="h-screen object-cover"
+            class="h-screen w-full object-cover"
             :src="projection.stageDisplay.content"
         />
         <video
