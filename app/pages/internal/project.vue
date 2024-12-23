@@ -8,7 +8,7 @@ const projection = useLatestTimelineCue("stageDisplay");
 </script>
 
 <template>
-    <div class="cursor-none">
+    <div class="cursor-none h-screen w-screen bg-black">
         <div v-show="projection?.stageDisplay?.content">
             <audio autoplay :src="currentCue?.audio"></audio>
             <img
