@@ -2,16 +2,10 @@
 import type { RealtimePostgresChangesPayload } from "@supabase/supabase-js";
 import type { Database } from "~~/supabase/db";
 import type { DBRow } from "~~/supabase/utils";
-import type { Timeline } from "~~/types/events";
 
-// Set up listen for event config and timeline changes
 const eventConfig = useEventConfig();
-const timeline = useTimeline();
+const eventState = useEventState();
 const castOptions = useCastOptions();
-const lastTimelineUpdate = useState<number>(
-    "state_timeline_last_update",
-    () => 0
-);
 
 const votes = useState<Array<DBRow<"casts">> | null>("state_votes", () => null);
 
@@ -40,43 +34,6 @@ const subscribeToDBChanges = () => {
                     case "DELETE":
                         if (oldRow.event === eventConfig.value?.event) {
                             eventConfig.value = null;
-                        }
-                        break;
-                }
-            }
-        )
-        .on(
-            "postgres_changes",
-            { event: "*", schema: "public", table: "timelines" },
-            async (payload: RealtimePostgresChangesPayload<Timeline>) => {
-                const { eventType, new: newRow, old: oldRow } = payload;
-                switch (eventType) {
-                    case "INSERT":
-                        if (newRow.event === eventConfig.value?.event) {
-                            useTimelineSetter(
-                                timeline,
-                                lastTimelineUpdate,
-                                newRow
-                            );
-                        }
-                        break;
-                    case "UPDATE":
-                        if (newRow.event === eventConfig.value?.event) {
-                            useTimelineSetter(
-                                timeline,
-                                lastTimelineUpdate,
-                                newRow
-                            );
-                        }
-                        break;
-                    case "DELETE":
-                        if (oldRow.event === timeline.value?.event) {
-                            useTimelineSetter(
-                                timeline,
-                                lastTimelineUpdate,
-                                null
-                            );
-                            useTimeline();
                         }
                         break;
                 }
@@ -126,6 +83,30 @@ const adminPermsWatcher = watch(adminPerms, (newPerms) => {
                         castOptions.value = castOptions.value.map((option) =>
                             option.id === newRow.id ? newRow : option
                         );
+                    }
+                }
+            )
+            .on(
+                "postgres_changes",
+                { event: "*", schema: "public", table: "state" },
+                async (
+                    payload: RealtimePostgresChangesPayload<DBRow<"state">>
+                ) => {
+                    const { eventType, new: newRow, old: oldRow } = payload;
+                    if (eventType === "INSERT") {
+                        if (eventState.value) eventState.value.push(newRow);
+                        else eventState.value = [newRow];
+                    } else if (eventType === "UPDATE") {
+                        if (eventState.value)
+                            eventState.value = eventState.value.map((state) =>
+                                state.id === newRow.id ? newRow : state
+                            );
+                    } else if (eventType === "DELETE") {
+                        if (eventState.value) {
+                            eventState.value = eventState.value.filter(
+                                (state) => state.id === oldRow.id
+                            );
+                        }
                     }
                 }
             )

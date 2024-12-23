@@ -2,7 +2,7 @@ import type { Database } from "~~/supabase/db";
 import type { DBRow } from "~~/supabase/utils";
 import { useSupabaseClient, useState } from "#imports";
 
-export const useEventConfig = () => {
+export const useEventConfig = (special?: string) => {
     // Get global state
     const eventConfig = useState<DBRow<"event-config"> | null>(
         "state_event_config",
@@ -22,7 +22,7 @@ export const useEventConfig = () => {
         eventConfig.value = data;
     };
 
-    if (!eventConfig.value) fetchEventConfig();
+    if (!eventConfig.value || special === "refetch") fetchEventConfig();
 
     return eventConfig;
 };

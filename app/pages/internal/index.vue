@@ -9,72 +9,10 @@ definePageMeta({
 
 const supabase = useSupabaseClient<Database>();
 
-const timeline = useTimeline();
 const myPerms = useMyPerms();
 const eventConfig = useEventConfig();
-const lastTimelineUpdate = useState<number>("state_timeline_last_update");
-const cues = useTimelineCues();
 const identities = useVoteStatus();
 const castOptions = useCastOptions();
-
-const latestCue = useLatestTimelineCue();
-
-const pendingUpdateStep = ref(false);
-
-const toast = useToast();
-
-const devMode = ref(false);
-
-const confirmGotoCue = async (index: number) => {
-    pendingUpdateStep.value = true;
-    if (!timeline.value) return;
-    const { error } = await supabase
-        .from("timelines")
-        .update({
-            step: index,
-        })
-        .eq("id", timeline.value.id);
-    if (error) {
-        toast.add({
-            title: "Cue write failed",
-            description: error.message,
-            color: "rose",
-        });
-    }
-};
-
-const gotoCue = (event: MouseEvent, index: number) => {
-    if (devMode.value && timeline.value) {
-        timeline.value.step = index;
-        confirmGotoCue(index);
-        return;
-    }
-    if (event.metaKey) {
-        confirmGotoCue(index);
-        return;
-    }
-    toast.add({
-        title: "Подтвердите действие",
-        description: `Переход на индекс - ${index}`,
-        actions: [
-            {
-                label: "Подтвердить",
-                click: () => confirmGotoCue(index),
-            },
-        ],
-    });
-};
-
-const editorString = ref("");
-const initialEditorString = ref("");
-
-watch(latestCue, (cue) => {
-    if (cue) {
-        editorString.value = JSON.stringify(cue, null, 2);
-        initialEditorString.value = JSON.stringify(cue, null, 2);
-    }
-});
-watch(lastTimelineUpdate, () => (pendingUpdateStep.value = false));
 
 const currentTab = useLocalStorage("internal_current_tab", () => 0);
 
@@ -343,34 +281,6 @@ const addCastOption = async () => {
         addCastOptionState.author = "";
     }
 };
-
-const updateCue = async () => {
-    if (timeline.value) {
-        const { error } = await supabase
-            .from("timelines")
-            .update({
-                cues: timeline.value.cues.map((cue) =>
-                    cue.index === timeline.value?.step
-                        ? JSON.parse(editorString.value)
-                        : cue
-                ),
-            })
-            .eq("event", timeline.value.event);
-        if (error) {
-            toast.add({
-                title: "Cue write failed",
-                description: error.message,
-                color: "rose",
-            });
-        } else {
-            toast.add({
-                title: "Cue updated",
-                description: "Changes applied successfully",
-                color: "green",
-            });
-        }
-    }
-};
 </script>
 
 <template>
@@ -387,10 +297,7 @@ const updateCue = async () => {
             "
         >
             <template #item="{ item: { key } }">
-                <div
-                    v-if="timeline?.step && key === 'config'"
-                    class="space-y-4"
-                >
+                <div v-if="key === 'config'" class="space-y-4">
                     <h2 class="text-2xl font-semibold">Мероприятие</h2>
                     <UCard>
                         <div v-if="configState" class="space-y-4">
@@ -437,130 +344,117 @@ const updateCue = async () => {
                         </div>
                     </UCard>
                 </div>
-                <div v-if="timeline?.step && key === 'cues'" class="space-y-4">
-                    <h2 class="text-2xl font-semibold">Поток сигналов</h2>
-                    <UCarousel v-slot="{ item: cue }" :items="cues">
-                        <UCard
-                            :key="cue.index"
-                            :ui="{
-                                ring:
-                                    timeline?.step === cue.index
-                                        ? 'ring-primary-500 dark:ring-primary-400'
-                                        : timeline?.step &&
-                                          timeline?.step > cue.index
-                                        ? undefined
-                                        : 'ring-gray-800 dark:ring-white',
-                            }"
-                            class="transition-all min-w-64 mr-2 ml-2 my-2"
-                        >
-                            <div class="flex gap-2 flex-col">
-                                <p
-                                    class="text-sm"
-                                    :style="{
-                                        opacity:
-                                            timeline?.step === cue.index
-                                                ? '1'
-                                                : '0.5',
-                                    }"
-                                >
-                                    {{ cue.index }}
-                                </p>
-                                <p class="transition-all">
-                                    {{ cue.comment }}
-                                </p>
-                                <UButton
-                                    v-if="timeline.step !== cue.index"
-                                    icon="mdi:arrow-down"
-                                    label="Переити"
-                                    class="w-fit"
-                                    variant="outline"
-                                    :loading="pendingUpdateStep"
-                                    @click="
-                                        (event) => gotoCue(event, cue.index)
-                                    "
-                                />
+                <div v-if="key === 'cues'" class="space-y-4">
+                    <h2 class="text-2xl font-semibold">
+                        Управление состоянием
+                    </h2>
+                    <UCard>
+                        <template #header>
+                            <div class="flex justify-between">
+                                <div class="flex flex-col gap-2">
+                                    <h3 class="text-xl font-semibold">
+                                        Текущее состояние
+                                    </h3>
+                                    <hr class="opacity-10" />
+                                    <p>
+                                        На сцене:
+                                        {{
+                                            (
+                                                eventConfig?.state as DBRow<"state">
+                                            ).stageUpdateContent
+                                        }}
+                                        ({{
+                                            {
+                                                video: "Видео",
+                                                image: "Картинка",
+                                                color: "Цвет",
+                                                clear: "Пустота",
+                                            }[
+                                                (
+                                                    eventConfig?.state as DBRow<"state">
+                                                ).stageUpdateType ?? "clear"
+                                            ]
+                                        }})
+                                    </p>
+                                    <p>
+                                        Звук:
+                                        {{
+                                            decodeURI(
+                                                (
+                                                    eventConfig?.state as DBRow<"state">
+                                                ).audio
+                                                    ?.split("/")
+                                                    .findLast(() => true) ?? ""
+                                            )
+                                        }}
+                                    </p>
+                                    <audio
+                                        controls
+                                        :src="(eventConfig?.state as DBRow<'state'>).audio ?? ''"
+                                    />
+                                    <p>
+                                        Текст в прямом эфире:
+                                        {{
+                                            (
+                                                eventConfig?.state as DBRow<"state">
+                                            ).livestream
+                                        }}
+                                    </p>
+                                    <p>
+                                        Статус на домашней:
+                                        {{
+                                            (
+                                                eventConfig?.state as DBRow<"state">
+                                            ).website
+                                        }}
+                                    </p>
+                                </div>
+                                <div class="flex flex-col gap-2 items-end">
+                                    <h3 class="text-xl font-semibold">
+                                        Обновить
+                                    </h3>
+                                    <hr class="opacity-10" />
+                                    <UInput
+                                        v-model="( eventConfig?.state as DBRow<'state'> ).stageUpdateContent"
+                                    />
+                                    <p>
+                                        Звук:
+                                        {{
+                                            decodeURI(
+                                                (
+                                                    eventConfig?.state as DBRow<"state">
+                                                ).audio
+                                                    ?.split("/")
+                                                    .findLast(() => true) ?? ""
+                                            )
+                                        }}
+                                    </p>
+                                    <audio
+                                        controls
+                                        :src="(eventConfig?.state as DBRow<'state'>).audio ?? ''"
+                                    />
+                                    <p>
+                                        Текст в прямом эфире:
+                                        {{
+                                            (
+                                                eventConfig?.state as DBRow<"state">
+                                            ).livestream
+                                        }}
+                                    </p>
+                                    <p>
+                                        Статус на домашней:
+                                        {{
+                                            (
+                                                eventConfig?.state as DBRow<"state">
+                                            ).website
+                                        }}
+                                    </p>
+                                </div>
                             </div>
-                        </UCard>
-                    </UCarousel>
-                    <hr class="opacity-10" />
-                    <div class="flex">
-                        <UCard class="w-full">
-                            <template #header>
-                                <h2 class="text-xl font-semibold">
-                                    Текущий сигнал
-                                </h2>
-                            </template>
-                            <p>
-                                <span class="opacity-50"> На экране: </span>
-                                <span
-                                    :style="{
-                                        color:
-                                            latestCue?.stageDisplay?.type ===
-                                            'color'
-                                                ? latestCue.stageDisplay.content
-                                                : undefined,
-                                    }"
-                                    >{{
-                                        latestCue?.stageDisplay?.content
-                                    }}</span
-                                >
-                                ({{
-                                    {
-                                        video: "Видео",
-                                        image: "Картинка",
-                                        color: "Цвет",
-                                        clear: "Ничего",
-                                    }[latestCue?.stageDisplay?.type ?? "clear"]
-                                }})
-                            </p>
-                            <p>
-                                <span class="opacity-50">Диалоги:</span>
-                                {{ latestCue?.dialogs }}
-                            </p>
-                            <p>
-                                <span class="opacity-50">Комментарии:</span>
-                                {{ latestCue?.comment }}
-                            </p>
-                            <p>
-                                <span class="opacity-50"
-                                    >Текст в прямом эфире:</span
-                                >
-                                {{ latestCue?.livestream?.overlayText }}
-                            </p>
-                            <p>
-                                <span class="opacity-50">На сайте:</span>
-                                {{ latestCue?.website?.headline }}
-                            </p>
-                            <hr class="opacity-10 my-4" />
-                            <MonacoEditor
-                                v-model="editorString"
-                                class="h-96 overflow-auto rounded-2xl"
-                                lang="json"
-                                :options="{
-                                    theme: 'vs-dark',
-                                }"
-                            />
-                            <UButton
-                                label="Обновить"
-                                :disabled="initialEditorString === editorString"
-                                @click="updateCue"
-                            />
-                        </UCard>
-                    </div>
-
-                    <UCard class="w-fit">
-                        <div class="flex items-center gap-4 mb-4">
-                            <UToggle v-model="devMode" />
-                            <p class="font-bold">Режим разработки</p>
-                        </div>
-                        <p class="w-96 opacity-70">
-                            Режим следует включать только при подготовке шоу.
-                            Синхронизация с узлами не гарантируется, а
-                            критические операции не требуют подтверждения.
-                        </p>
+                        </template>
                     </UCard>
                 </div>
-                <div v-if="timeline?.step && key === 'votes'" class="space-y-4">
+                <div v-if="key === 'votes'" class="space-y-4">
                     <h2 class="text-2xl font-semibold">Голоса</h2>
                     <UInput v-model="idQuery" placeholder="Поиск..." />
                     <UTable :rows="filteredIdentities" :columns="idColumns">
@@ -673,10 +567,7 @@ const updateCue = async () => {
                         </template>
                     </UTable>
                 </div>
-                <div
-                    v-if="timeline?.step && key === 'vote-options'"
-                    class="space-y-4"
-                >
+                <div v-if="key === 'vote-options'" class="space-y-4">
                     <h2 class="text-2xl font-semibold">Варианты голосования</h2>
                     <UModal v-model="castOptionEditState.open">
                         <UCard>

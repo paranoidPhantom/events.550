@@ -2,8 +2,6 @@
 const eventConfig = useEventConfig();
 
 const isdev = import.meta.dev;
-
-const currentCue = useLatestTimelineCue();
 </script>
 
 <template>

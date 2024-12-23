@@ -1,16 +1,20 @@
 <script lang="ts" setup>
+import type { DBRow } from "~~/supabase/utils";
+
 definePageMeta({
     layout: "empty",
 });
-const livestreamCue = useLatestTimelineCue("livestream");
+const livestreamCue = computed(
+    () => useEventConfig().value?.state as DBRow<"state">
+);
 
 const overlayText = computed(() => {
-    return livestreamCue.value?.livestream?.overlayText;
+    return livestreamCue.value?.livestream;
 });
 
 onMounted(() => {
     setInterval(() => {
-        useTimeline("refetch");
+        useEventConfig("refetch");
     }, 1000);
 });
 </script>
