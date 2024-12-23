@@ -97,6 +97,7 @@ export type Database = {
           logo_url: string | null
           name: string | null
           restricted: boolean
+          state: Json
           stream_shown: boolean
           twitch_stream_channel: string | null
           voting_open: boolean
@@ -108,6 +109,7 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           restricted?: boolean
+          state?: Json
           stream_shown?: boolean
           twitch_stream_channel?: string | null
           voting_open?: boolean
@@ -119,6 +121,7 @@ export type Database = {
           logo_url?: string | null
           name?: string | null
           restricted?: boolean
+          state?: Json
           stream_shown?: boolean
           twitch_stream_channel?: string | null
           voting_open?: boolean
@@ -188,37 +191,42 @@ export type Database = {
         }
         Relationships: []
       }
-      timelines: {
+      state: {
         Row: {
+          audio: string | null
           created_at: string
-          cues: Json[]
-          event: string
           id: number
-          step: number
+          label: string | null
+          livestream: string | null
+          stageUpdateContent: string | null
+          stageUpdateType: Database["public"]["Enums"]["StageUpdateType"] | null
+          website: string | null
         }
         Insert: {
+          audio?: string | null
           created_at?: string
-          cues?: Json[]
-          event: string
           id?: number
-          step?: number
+          label?: string | null
+          livestream?: string | null
+          stageUpdateContent?: string | null
+          stageUpdateType?:
+            | Database["public"]["Enums"]["StageUpdateType"]
+            | null
+          website?: string | null
         }
         Update: {
+          audio?: string | null
           created_at?: string
-          cues?: Json[]
-          event?: string
           id?: number
-          step?: number
+          label?: string | null
+          livestream?: string | null
+          stageUpdateContent?: string | null
+          stageUpdateType?:
+            | Database["public"]["Enums"]["StageUpdateType"]
+            | null
+          website?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "timelines_event_fkey"
-            columns: ["event"]
-            isOneToOne: false
-            referencedRelation: "event-config"
-            referencedColumns: ["event"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -228,7 +236,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      StageUpdateType: "color" | "video" | "image"
     }
     CompositeTypes: {
       [_ in never]: never
