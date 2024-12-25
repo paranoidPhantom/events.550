@@ -16,6 +16,8 @@ const castOptions = useCastOptions();
 
 const currentTab = useLocalStorage("internal_current_tab", () => 0);
 
+const toast = useToast();
+
 const configState = ref<
     Partial<Record<keyof DBRow<"event-config">, string | boolean | undefined>>
 >({});
@@ -281,6 +283,60 @@ const addCastOption = async () => {
         addCastOptionState.author = "";
     }
 };
+
+const sendState = ref<Partial<DBRow<"state">>>({});
+
+watch(
+    eventConfig,
+    (newConfig) => {
+        if (newConfig?.state) {
+            sendState.value = newConfig?.state as DBRow<"state">;
+        }
+    },
+    {
+        deep: true,
+    }
+);
+
+const filePickerState = reactive<{
+    open: boolean;
+    filter: (file: { name: string }) => boolean;
+    onPick: (url: string) => void;
+}>({
+    open: false,
+    filter: () => true,
+    onPick: (url: string) => console.log(url),
+});
+
+const { data: files, refresh: refreshFiles } = useAsyncData(async () => {
+    const { data } = await supabase.storage.from("attachments").list();
+    return data ?? [];
+});
+
+const colorPickerState = ref<string>("#000000");
+
+const pushStateToServer = async () => {
+    const { error } = await supabase
+        .from("event-config")
+        .update({
+            state: sendState.value,
+        })
+        .eq("event", eventConfig.value?.event ?? "");
+    if (error) {
+        toast.add({
+            title: "State update failed",
+            icon: "mdi:alert-circle",
+            description: error.message,
+            color: "rose",
+        });
+    } else {
+        toast.add({
+            title: "State updated",
+            description: "Changes applied successfully",
+            color: "green",
+        });
+    }
+};
 </script>
 
 <template>
@@ -345,113 +401,308 @@ const addCastOption = async () => {
                     </UCard>
                 </div>
                 <div v-if="key === 'cues'" class="space-y-4">
+                    <UModal v-model="filePickerState.open">
+                        <UCard>
+                            <div class="flex flex-col gap-4">
+                                <h4 class="text-xl font-semibold">Картинки</h4>
+                                <img
+                                    v-for="file in files
+                                        ?.filter(filePickerState.filter)
+                                        .filter(
+                                            (file) =>
+                                                file.name.endsWith('.png') ||
+                                                file.name.endsWith('.jpg')
+                                        ) ?? []"
+                                    :key="file.name"
+                                    :src="`https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`"
+                                    alt="Image"
+                                    class="h-48 cursor-pointer object-cover"
+                                    @click="
+                                        () => {
+                                            filePickerState.open = false;
+                                            filePickerState.onPick(
+                                                `https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`
+                                            );
+                                        }
+                                    "
+                                />
+                                <hr class="opacity-10" />
+                                <h4 class="text-xl font-semibold">Аудио</h4>
+                                <div
+                                    v-for="file in files
+                                        ?.filter(filePickerState.filter)
+                                        .filter((file) =>
+                                            file.name.endsWith('.mp3')
+                                        ) ?? []"
+                                    :key="file.name"
+                                    class="flex items-center gap-4"
+                                >
+                                    <audio
+                                        controls
+                                        :src="`https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`"
+                                    />
+                                    <UButton
+                                        icon="mdi:check"
+                                        @click="
+                                            () => {
+                                                filePickerState.open = false;
+                                                filePickerState.onPick(
+                                                    `https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`
+                                                );
+                                            }
+                                        "
+                                    />
+                                </div>
+                                <hr class="opacity-10" />
+                                <h4 class="text-xl font-semibold">Видео</h4>
+                                <div
+                                    v-for="file in files
+                                        ?.filter(filePickerState.filter)
+                                        .filter((file) =>
+                                            file.name.endsWith('.mp4')
+                                        ) ?? []"
+                                    :key="file.name"
+                                    class="flex flex-col gap-4"
+                                >
+                                    <video
+                                        controls
+                                        :src="`https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`"
+                                    />
+                                    <UButton
+                                        icon="mdi:check"
+                                        class="w-fit"
+                                        @click="
+                                            () => {
+                                                filePickerState.open = false;
+                                                filePickerState.onPick(
+                                                    `https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`
+                                                );
+                                            }
+                                        "
+                                    />
+                                </div>
+                                <template
+                                    v-if="
+                                        filePickerState.filter({
+                                            name: 'color',
+                                        })
+                                    "
+                                >
+                                    <hr class="opacity-10" />
+                                    <h4 class="text-xl font-semibold">Цвет</h4>
+                                    <UButtonGroup class="w-full">
+                                        <UInput
+                                            v-model="colorPickerState"
+                                            class="w-full"
+                                            type="color"
+                                            :ui="{ base: 'h-12' }"
+                                        />
+                                        <UButton
+                                            icon="mdi:check"
+                                            @click="
+                                                () => {
+                                                    filePickerState.open = false;
+                                                    filePickerState.onPick(
+                                                        colorPickerState
+                                                    );
+                                                }
+                                            "
+                                        />
+                                    </UButtonGroup>
+                                </template>
+                            </div>
+                        </UCard>
+                    </UModal>
                     <h2 class="text-2xl font-semibold">
                         Управление состоянием
                     </h2>
                     <UCard>
                         <template #header>
-                            <div class="flex justify-between">
-                                <div class="flex flex-col gap-2">
-                                    <h3 class="text-xl font-semibold">
-                                        Текущее состояние
-                                    </h3>
-                                    <hr class="opacity-10" />
-                                    <p>
-                                        На сцене:
-                                        {{
+                            <div
+                                v-if="eventConfig?.state"
+                                class="flex flex-col gap-2"
+                            >
+                                <h3 class="text-xl font-semibold">
+                                    Текущее состояние
+                                </h3>
+                                <hr class="opacity-10" />
+                                <p>
+                                    <span class="opacity-50"> На сцене:</span>
+                                    {{
+                                        (eventConfig?.state as DBRow<"state">)
+                                            .stageUpdateContent
+                                    }}
+                                    ({{
+                                        {
+                                            video: "Видео",
+                                            image: "Картинка",
+                                            color: "Цвет",
+                                            clear: "Пустота",
+                                        }[
                                             (
                                                 eventConfig?.state as DBRow<"state">
-                                            ).stageUpdateContent
-                                        }}
-                                        ({{
-                                            {
-                                                video: "Видео",
-                                                image: "Картинка",
-                                                color: "Цвет",
-                                                clear: "Пустота",
-                                            }[
-                                                (
-                                                    eventConfig?.state as DBRow<"state">
-                                                ).stageUpdateType ?? "clear"
-                                            ]
-                                        }})
-                                    </p>
-                                    <p>
-                                        Звук:
-                                        {{
-                                            decodeURI(
-                                                (
-                                                    eventConfig?.state as DBRow<"state">
-                                                ).audio
-                                                    ?.split("/")
-                                                    .findLast(() => true) ?? ""
-                                            )
-                                        }}
-                                    </p>
-                                    <audio
-                                        controls
-                                        :src="(eventConfig?.state as DBRow<'state'>).audio ?? ''"
-                                    />
-                                    <p>
-                                        Текст в прямом эфире:
-                                        {{
+                                            ).stageUpdateType ?? "clear"
+                                        ]
+                                    }})
+                                </p>
+                                <p>
+                                    <span class="opacity-50"> Звук:</span>
+                                    {{
+                                        decodeURI(
                                             (
                                                 eventConfig?.state as DBRow<"state">
-                                            ).livestream
-                                        }}
-                                    </p>
-                                    <p>
-                                        Статус на домашней:
-                                        {{
-                                            (
-                                                eventConfig?.state as DBRow<"state">
-                                            ).website
-                                        }}
-                                    </p>
-                                </div>
-                                <div class="flex flex-col gap-2 items-end">
-                                    <h3 class="text-xl font-semibold">
-                                        Обновить
-                                    </h3>
-                                    <hr class="opacity-10" />
-                                    <UInput
-                                        v-model="( eventConfig?.state as DBRow<'state'> ).stageUpdateContent"
-                                    />
-                                    <p>
-                                        Звук:
-                                        {{
-                                            decodeURI(
-                                                (
-                                                    eventConfig?.state as DBRow<"state">
-                                                ).audio
-                                                    ?.split("/")
-                                                    .findLast(() => true) ?? ""
-                                            )
-                                        }}
-                                    </p>
-                                    <audio
-                                        controls
-                                        :src="(eventConfig?.state as DBRow<'state'>).audio ?? ''"
-                                    />
-                                    <p>
-                                        Текст в прямом эфире:
-                                        {{
-                                            (
-                                                eventConfig?.state as DBRow<"state">
-                                            ).livestream
-                                        }}
-                                    </p>
-                                    <p>
-                                        Статус на домашней:
-                                        {{
-                                            (
-                                                eventConfig?.state as DBRow<"state">
-                                            ).website
-                                        }}
-                                    </p>
-                                </div>
+                                            ).audio
+                                                ?.split("/")
+                                                .findLast(() => true) ?? ""
+                                        )
+                                    }}
+                                </p>
+                                <audio
+                                    controls
+                                    :src="(eventConfig?.state as DBRow<'state'>).audio ?? ''"
+                                />
+                                <p>
+                                    <span class="opacity-50">
+                                        Текст в прямом эфире:</span
+                                    >
+                                    {{
+                                        (eventConfig?.state as DBRow<"state">)
+                                            .livestream
+                                    }}
+                                </p>
+                                <p>
+                                    <span class="opacity-50"
+                                        >Статус на домашней:</span
+                                    >
+                                    {{
+                                        (eventConfig?.state as DBRow<"state">)
+                                            .website
+                                    }}
+                                </p>
                             </div>
                         </template>
+                        <div class="space-y-2">
+                            <h3 class="text-xl font-semibold">
+                                Обновить состояние
+                            </h3>
+                            <div class="flex flex-col gap-2">
+                                <UButton
+                                    label="Выбрать аудио файл"
+                                    class="w-fit"
+                                    variant="soft"
+                                    @click="
+                                        () => {
+                                            refreshFiles();
+                                            filePickerState.open = true;
+                                            filePickerState.filter = (file) =>
+                                                file.name.endsWith('.mp3');
+                                            filePickerState.onPick = (url) =>
+                                                (sendState.audio = url);
+                                        }
+                                    "
+                                >
+                                    {{
+                                        decodeURI(
+                                            sendState.audio
+                                                ?.split("/")
+                                                .findLast(() => true) ??
+                                                "Выбрать аудио файл"
+                                        )
+                                    }}
+                                </UButton>
+                                <UButton
+                                    label="Выбрать визуальный файл"
+                                    class="w-fit"
+                                    variant="soft"
+                                    @click="
+                                        () => {
+                                            refreshFiles();
+                                            filePickerState.open = true;
+                                            filePickerState.filter = (file) =>
+                                                file.name.endsWith('.png') ||
+                                                file.name.endsWith('.jpg') ||
+                                                file.name.endsWith('.mp4') ||
+                                                file.name === 'color';
+                                            filePickerState.onPick = (url) => {
+                                                sendState.stageUpdateContent =
+                                                    url;
+                                                if (
+                                                    url.endsWith('.png') ||
+                                                    url.endsWith('.jpg')
+                                                ) {
+                                                    sendState.stageUpdateType =
+                                                        'image';
+                                                } else if (
+                                                    url.endsWith('.mp4')
+                                                ) {
+                                                    sendState.stageUpdateType =
+                                                        'video';
+                                                } else {
+                                                    sendState.stageUpdateType =
+                                                        'color';
+                                                }
+                                            };
+                                        }
+                                    "
+                                >
+                                    {{ sendState.stageUpdateContent }}
+                                    ({{
+                                        {
+                                            video: "Видео",
+                                            image: "Картинка",
+                                            color: "Цвет",
+                                            clear: "Пустота",
+                                        }[sendState.stageUpdateType ?? "clear"]
+                                    }})
+                                </UButton>
+                            </div>
+                            <UFormGroup label="Текст на прямом эфире">
+                                <UButtonGroup class="w-full">
+                                    <UInput
+                                        v-model="sendState.livestream"
+                                        class="w-full"
+                                        :placeholder="
+                                            sendState.livestream === undefined
+                                                ? 'Не будет изменено'
+                                                : 'Будет изменено на пустую строку'
+                                        "
+                                    />
+                                    <UButton
+                                        v-if="
+                                            sendState?.livestream !== undefined
+                                        "
+                                        label="Не менять"
+                                        @click="
+                                            sendState.livestream = undefined
+                                        "
+                                    />
+                                </UButtonGroup>
+                            </UFormGroup>
+                            <UFormGroup label="Текст на сайте">
+                                <UButtonGroup class="w-full">
+                                    <UInput
+                                        v-model="sendState.website"
+                                        class="w-full"
+                                        :placeholder="
+                                            sendState.website === undefined
+                                                ? 'Не будет изменено'
+                                                : 'Будет изменено на пустую строку'
+                                        "
+                                    />
+                                    <UButton
+                                        v-if="sendState?.website !== undefined"
+                                        label="Не менять"
+                                        @click="sendState.website = undefined"
+                                    />
+                                </UButtonGroup>
+                            </UFormGroup>
+                            <UButton
+                                size="lg"
+                                icon="tabler:stack-push"
+                                label="ПРИМЕНИТЬ"
+                                @click="pushStateToServer"
+                            />
+                        </div>
                     </UCard>
                 </div>
                 <div v-if="key === 'votes'" class="space-y-4">
