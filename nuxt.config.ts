@@ -26,6 +26,11 @@ export default defineNuxtConfig({
     turnstile: {
         secretKey: process.env.NUXT_TURNSTILE_SECRET_KEY,
     },
+    routeRules: {
+        "/internal": {
+            ssr: false,
+        },
+    },
     css: ["~/assets/global.scss"],
     app: {
         pageTransition: {
