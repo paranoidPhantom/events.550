@@ -11,13 +11,11 @@ const projection = computed(
     () => useEventConfig().value?.state as DBRow<"state">
 );
 
-const updateAudio = (
-    newProjection: (typeof projection)["value"],
-    override?: string
-) => {
+const updateAudio = (newProjection: (typeof projection)["value"]) => {
     const newSrc = newProjection?.audio;
     if (audio.value && newSrc) {
         const element = audio.value;
+        if (element.src === newSrc) return;
         let count = 0;
         const changeLevels = (direction: "up" | "down") => {
             element.volume = direction === "down" ? 1 - count / 10 : count / 10;
@@ -39,7 +37,7 @@ watch(projection, (newProjection) => updateAudio(newProjection));
 const stop = watchEffect(() => {
     if (projection.value && audio.value) {
         stop();
-        updateAudio(projection.value, "first");
+        updateAudio(projection.value);
     }
 });
 </script>
