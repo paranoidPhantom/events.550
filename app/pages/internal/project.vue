@@ -15,7 +15,7 @@ const updateAudio = (newProjection: (typeof projection)["value"]) => {
     const newSrc = newProjection?.audio;
     if (audio.value && newSrc) {
         const element = audio.value;
-        if (element.src === newSrc) return;
+        if (element.getAttribute("src") === newSrc) return;
         let count = 0;
         const changeLevels = (direction: "up" | "down") => {
             element.volume = direction === "down" ? 1 - count / 10 : count / 10;
