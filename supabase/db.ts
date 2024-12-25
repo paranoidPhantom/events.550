@@ -193,38 +193,37 @@ export type Database = {
       }
       state: {
         Row: {
-          audio: string | null
+          audio: string
           created_at: string
+          favorite: boolean
           id: number
           label: string | null
-          livestream: string | null
-          stageUpdateContent: string | null
-          stageUpdateType: Database["public"]["Enums"]["StageUpdateType"] | null
-          website: string | null
+          livestream: string
+          stageUpdateContent: string
+          stageUpdateType: Database["public"]["Enums"]["StageUpdateType"]
+          website: string
         }
         Insert: {
-          audio?: string | null
+          audio?: string
           created_at?: string
+          favorite?: boolean
           id?: number
           label?: string | null
-          livestream?: string | null
-          stageUpdateContent?: string | null
-          stageUpdateType?:
-            | Database["public"]["Enums"]["StageUpdateType"]
-            | null
-          website?: string | null
+          livestream?: string
+          stageUpdateContent?: string
+          stageUpdateType?: Database["public"]["Enums"]["StageUpdateType"]
+          website?: string
         }
         Update: {
-          audio?: string | null
+          audio?: string
           created_at?: string
+          favorite?: boolean
           id?: number
           label?: string | null
-          livestream?: string | null
-          stageUpdateContent?: string | null
-          stageUpdateType?:
-            | Database["public"]["Enums"]["StageUpdateType"]
-            | null
-          website?: string | null
+          livestream?: string
+          stageUpdateContent?: string
+          stageUpdateType?: Database["public"]["Enums"]["StageUpdateType"]
+          website?: string
         }
         Relationships: []
       }
