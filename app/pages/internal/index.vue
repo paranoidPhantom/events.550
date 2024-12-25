@@ -437,10 +437,16 @@ const pushStateToServer = async () => {
                                     :key="file.name"
                                     class="flex items-center gap-4"
                                 >
-                                    <audio
-                                        controls
-                                        :src="`https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`"
-                                    />
+                                    <div class="flex flex-col gap-1">
+                                        <p>
+                                            {{ decodeURI(file.name) }}
+                                        </p>
+
+                                        <audio
+                                            controls
+                                            :src="`https://db.eu1.hudalla.dev/storage/v1/object/public/attachments/${file.name}`"
+                                        />
+                                    </div>
                                     <UButton
                                         icon="mdi:check"
                                         @click="
