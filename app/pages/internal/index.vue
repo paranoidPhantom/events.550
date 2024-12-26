@@ -129,16 +129,18 @@ const createVote = async (user_id: string) => {
 const idQuery = ref("");
 
 const filteredIdentities = computed(() => {
-    if (!idQuery.value) {
-        return identities.value;
+    if (!idQuery.value || idQuery.value.length < 2) {
+        return [];
     }
 
     return (identities.value ?? []).filter((person) => {
-        return Object.values(person).some((value) => {
-            return String(value)
+        return (
+            person.first_name
                 .toLowerCase()
-                .includes(idQuery.value.toLowerCase());
-        });
+                .includes(idQuery.value.toLowerCase()) ||
+            person.grade.toLowerCase().includes(idQuery.value.toLowerCase()) ||
+            person.last_name.toLowerCase().includes(idQuery.value.toLowerCase())
+        );
     });
 });
 
@@ -597,6 +599,16 @@ const { data: presets } = useAsyncData(async () => {
                                             .website
                                     }}
                                 </p>
+                                <UBadge
+                                    class="w-fit"
+                                    size="lg"
+                                    variant="outline"
+                                >
+                                    {{
+                                        (eventConfig.state as DBRow<"state">)
+                                            .label
+                                    }}
+                                </UBadge>
                             </div>
                         </template>
                         <div class="space-y-2">
@@ -889,8 +901,11 @@ const { data: presets } = useAsyncData(async () => {
                     <UInput v-model="idQuery" placeholder="Поиск..." />
                     <UTable :rows="filteredIdentities" :columns="idColumns">
                         <template #empty-state>
-                            <UCard>
-                                <div class="flex items-center gap-4">
+                            <UCard class="mt-4">
+                                <div
+                                    v-if="idQuery && idQuery.length >= 2"
+                                    class="flex items-center gap-4"
+                                >
                                     <UInput
                                         v-model="createUserState.last_name"
                                         placeholder="Фаимилия"
@@ -908,6 +923,7 @@ const { data: presets } = useAsyncData(async () => {
                                         @click="createUser"
                                     />
                                 </div>
+                                <p v-else>Поиск начинается с 2-х символов,</p>
                             </UCard>
                         </template>
                         <template #info-data="{ row }">
