@@ -199,6 +199,7 @@ export type Database = {
           label: string | null
           livestream: string
           stageUpdateContent: string
+          stageUpdateLooped: boolean
           stageUpdateType: Database["public"]["Enums"]["StageUpdateType"]
           website: string
         }
@@ -209,6 +210,7 @@ export type Database = {
           label?: string | null
           livestream?: string
           stageUpdateContent?: string
+          stageUpdateLooped?: boolean
           stageUpdateType?: Database["public"]["Enums"]["StageUpdateType"]
           website?: string
         }
@@ -219,6 +221,7 @@ export type Database = {
           label?: string | null
           livestream?: string
           stageUpdateContent?: string
+          stageUpdateLooped?: boolean
           stageUpdateType?: Database["public"]["Enums"]["StageUpdateType"]
           website?: string
         }
