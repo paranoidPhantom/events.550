@@ -21,6 +21,7 @@ const projection = computed(
             <video
                 class="h-screen w-screen object-cover"
                 autoplay
+                :loop="projection.stageUpdateLooped"
                 v-else-if="projection?.stageUpdateType === 'video'"
                 :src="projection.stageUpdateContent"
             />
