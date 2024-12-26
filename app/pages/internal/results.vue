@@ -44,7 +44,9 @@ const topThree = computed(() =>
         class="__results flex items-end justify-center gap-4 py-[10%] h-screen"
     >
         <div
-            v-for="option in castOptions"
+            v-for="option in castOptions.sort(
+                (a, b) => (votes[b.id] ?? 0) - (votes[a.id] ?? 0)
+            )"
             :key="option.id"
             class="flex flex-col items-center gap-4"
             :style="{
@@ -59,7 +61,7 @@ const topThree = computed(() =>
             }"
         >
             <div
-                class="w-16 bg-blue-500"
+                class="w-16 bg-blue-500 transition-all"
                 :style="{ height: `${(votes[option.id] ?? 0) * 4}px` }"
             ></div>
             <p class="opacity-50">{{ option.author }}</p>
