@@ -246,10 +246,16 @@ const submitVote = async () => {
                             >
                                 <UAccordion
                                     :items="
-                                        castOptions.map((option) => ({
-                                            label: option.name,
-                                            ...option,
-                                        }))
+                                        castOptions
+                                            .map((option) => ({
+                                                label: option.name,
+                                                ...option,
+                                            }))
+                                            .filter(
+                                                (option) =>
+                                                    option.author !==
+                                                    foundMatch?.grade
+                                            )
                                     "
                                 >
                                     <template #default="{ item }">
@@ -317,17 +323,6 @@ const submitVote = async () => {
                 v-if="state.turnstile && validSelection"
                 class="flex flex-col gap-4"
             >
-                <p class="opacity-50 text-sm">
-                    Нажимая кнопку «Проголосовать», вы соглашаетесь с
-                    <UButton
-                        to="/privacy"
-                        variant="link"
-                        :padded="false"
-                        target="_blank"
-                    >
-                        Политикой конфеденциальности
-                    </UButton>
-                </p>
                 <UButton
                     size="xl"
                     class="w-fit"
