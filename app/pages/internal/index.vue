@@ -100,8 +100,9 @@ const deleteVote = async (id: string) => {
 
 const voteCreationState = ref<Record<string, Record<string, boolean>>>({});
 
-watchEffect(() => {
+const stopIDWatcher = watchEffect(() => {
     if (identities.value) {
+        stopIDWatcher();
         identities.value.forEach((identity) => {
             voteCreationState.value[identity.id] = Object.fromEntries(
                 castOptions.value.map((option) => [option.author, false])
