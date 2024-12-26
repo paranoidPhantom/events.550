@@ -61,7 +61,7 @@ const topThree = computed(() =>
             }"
         >
             <div
-                class="w-16 bg-blue-500 transition-all"
+                class="w-16 bg-blue-500 transition-all rounded-b-xl"
                 :style="{ height: `${(votes[option.id] ?? 0) * 4}px` }"
             ></div>
             <p class="opacity-50">{{ option.author }}</p>
