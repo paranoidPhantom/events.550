@@ -178,6 +178,28 @@ const submitVote = async () => {
                     />
                 </UFormGroup>
             </div>
+            <UAlert
+                v-if="
+                    !foundMatch &&
+                    (state.grade || state.first_name || state.last_name)
+                "
+                color="green"
+                variant="subtle"
+                title="Ошиблись или не можете найти себя?"
+                description="Ничего страшного! Попробуйте снова, или подойдите к столикам в конце зала, мы вам поможем!"
+                :actions="[
+                    {
+                        label: 'Попробовать снова',
+                        variant: 'soft',
+                        color: 'green',
+                        click: () => {
+                            state.first_name = '';
+                            state.last_name = '';
+                            state.grade = '';
+                        },
+                    },
+                ]"
+            />
             <div v-if="foundMatch" class="flex flex-col gap-4">
                 <h2
                     class="text-2xl font-semibold"
@@ -261,7 +283,7 @@ const submitVote = async () => {
                                     <template #default="{ item }">
                                         <UButton variant="outline" class="mb-4">
                                             <UCheckbox
-                                                size="lg"
+                                                size="xl"
                                                 :disabled="
                                                     validSelection &&
                                                     !state.selection[item.id]
@@ -276,8 +298,8 @@ const submitVote = async () => {
                                             />
                                             {{ item.name }}
                                             <UBadge
-                                                size="sm"
-                                                variant="outline"
+                                                variant="soft"
+                                                size="lg"
                                                 class="ml-auto"
                                             >
                                                 {{ item.author }}
@@ -286,6 +308,7 @@ const submitVote = async () => {
                                     </template>
                                     <template #item="{ item }">
                                         <UCarousel
+                                            v-if="item.image_urls.length > 0"
                                             v-slot="{ item: slide }"
                                             :ui="{
                                                 container: 'rounded-lg',
@@ -300,7 +323,9 @@ const submitVote = async () => {
                                                 :src="slide"
                                             />
                                         </UCarousel>
-                                        <p>{{ item.description }}</p>
+                                        <p class="mb-4">
+                                            {{ item.description }}
+                                        </p>
                                     </template>
                                 </UAccordion>
                             </div>
