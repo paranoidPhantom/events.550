@@ -337,6 +337,11 @@ const pushStateToServer = async () => {
         });
     }
 };
+
+const { data: presets } = useAsyncData(async () => {
+    const { data } = await supabase.from("state").select();
+    return data;
+});
 </script>
 
 <template>
@@ -549,6 +554,11 @@ const pushStateToServer = async () => {
                                                 eventConfig?.state as DBRow<"state">
                                             ).stageUpdateType ?? "clear"
                                         ]
+                                    }}{{
+                                        (eventConfig?.state as DBRow<"state">)
+                                            .stageUpdateLooped
+                                            ? ", зациклено"
+                                            : ""
                                     }})
                                 </p>
                                 <p>
@@ -564,6 +574,7 @@ const pushStateToServer = async () => {
                                     }}
                                 </p>
                                 <audio
+                                    class="w-full"
                                     controls
                                     :src="(eventConfig?.state as DBRow<'state'>).audio ?? ''"
                                 />
@@ -591,6 +602,13 @@ const pushStateToServer = async () => {
                             <h3 class="text-xl font-semibold">
                                 Обновить состояние
                             </h3>
+                            <UButton
+                                variant="outline"
+                                label="Сброс"
+                                icon="line-md:arrow-align-left"
+                                @click="sendState = eventConfig?.state"
+                            />
+                            <hr class="opacity-10" />
                             <div class="flex flex-col gap-2">
                                 <UButtonGroup class="w-full">
                                     <UButton
@@ -706,6 +724,11 @@ const pushStateToServer = async () => {
                                     />
                                 </UButtonGroup>
                             </div>
+                            <UFormGroup label="Зациклить видео">
+                                <UToggle
+                                    v-model="sendState.stageUpdateLooped"
+                                />
+                            </UFormGroup>
                             <UFormGroup label="Текст на прямом эфире">
                                 <UButtonGroup class="w-full">
                                     <UInput
@@ -758,9 +781,106 @@ const pushStateToServer = async () => {
                                 size="lg"
                                 icon="tabler:stack-push"
                                 label="ПРИМЕНИТЬ"
+                                :disabled="sendState.audio === (eventConfig?.state as DBRow<'state'>).audio && sendState.livestream === (eventConfig?.state as DBRow<'state'>).livestream && sendState.stageUpdateContent === (eventConfig?.state as DBRow<'state'>).stageUpdateContent && sendState.stageUpdateLooped === (eventConfig?.state as DBRow<'state'>).stageUpdateLooped && sendState.website === (eventConfig?.state as DBRow<'state'>).website"
                                 @click="pushStateToServer"
                             />
                         </div>
+                        <template #footer>
+                            <h3 class="text-xl font-semibold">Пресеты</h3>
+                            <hr class="opacity-10 my-4" />
+                            <div class="flex flex-wrap gap-2">
+                                <UCard
+                                    v-for="preset in presets"
+                                    :key="preset.id"
+                                    class="cursor-pointer"
+                                    @click="
+                                        (event: MouseEvent) => {
+                                            sendState = preset;
+											if (event.shiftKey) pushStateToServer()
+                                        }
+                                    "
+                                >
+                                    <div class="flex flex-col gap-2">
+                                        <UBadge variant="subtle" size="lg">
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <UIcon
+                                                    name="heroicons:speaker-wave-16-solid"
+                                                />
+                                                <p>
+                                                    {{
+                                                        preset.audio
+                                                            ?.split("/")
+                                                            .findLast(
+                                                                () => true
+                                                            )
+                                                    }}
+                                                </p>
+                                            </div>
+                                        </UBadge>
+                                        <UBadge variant="subtle" size="lg">
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <UIcon
+                                                    name="heroicons:photo-16-solid"
+                                                />
+                                                <p>
+                                                    {{
+                                                        preset.stageUpdateContent
+                                                            ?.split("/")
+                                                            .findLast(
+                                                                () => true
+                                                            )
+                                                    }}
+
+                                                    ({{
+                                                        {
+                                                            video: "Видео",
+                                                            image: "Картинка",
+                                                            color: "Цвет",
+                                                            clear: "Пустота",
+                                                        }[
+                                                            preset.stageUpdateType ??
+                                                                "clear"
+                                                        ]
+                                                    }}{{
+                                                        preset.stageUpdateLooped
+                                                            ? ", зациклено"
+                                                            : ""
+                                                    }})
+                                                </p>
+                                            </div>
+                                        </UBadge>
+                                        <UBadge variant="subtle" size="lg">
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <UIcon
+                                                    name="heroicons:video-camera"
+                                                />
+                                                <p>
+                                                    {{ preset.livestream }}
+                                                </p>
+                                            </div>
+                                        </UBadge>
+                                        <UBadge variant="subtle" size="lg">
+                                            <div
+                                                class="flex items-center gap-2"
+                                            >
+                                                <UIcon
+                                                    name="heroicons:chat-bubble-bottom-center-text"
+                                                />
+                                                <p>
+                                                    {{ preset.website }}
+                                                </p>
+                                            </div>
+                                        </UBadge>
+                                    </div>
+                                </UCard>
+                            </div>
+                        </template>
                     </UCard>
                 </div>
                 <div v-if="key === 'votes'" class="space-y-4">
