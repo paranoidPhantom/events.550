@@ -195,7 +195,6 @@ export type Database = {
         Row: {
           audio: string
           created_at: string
-          favorite: boolean
           id: number
           label: string | null
           livestream: string
@@ -206,7 +205,6 @@ export type Database = {
         Insert: {
           audio?: string
           created_at?: string
-          favorite?: boolean
           id?: number
           label?: string | null
           livestream?: string
@@ -217,7 +215,6 @@ export type Database = {
         Update: {
           audio?: string
           created_at?: string
-          favorite?: boolean
           id?: number
           label?: string | null
           livestream?: string
