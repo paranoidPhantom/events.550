@@ -290,7 +290,7 @@ watch(
     eventConfig,
     (newConfig) => {
         if (newConfig?.state) {
-            sendState.value = newConfig?.state as DBRow<"state">;
+            sendState.value = { ...(newConfig?.state as DBRow<"state">) };
         }
     },
     {
