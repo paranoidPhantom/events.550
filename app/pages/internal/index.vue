@@ -592,75 +592,119 @@ const pushStateToServer = async () => {
                                 Обновить состояние
                             </h3>
                             <div class="flex flex-col gap-2">
-                                <UButton
-                                    label="Выбрать аудио файл"
-                                    class="w-fit"
-                                    variant="soft"
-                                    @click="
-                                        () => {
-                                            refreshFiles();
-                                            filePickerState.open = true;
-                                            filePickerState.filter = (file) =>
-                                                file.name.endsWith('.mp3');
-                                            filePickerState.onPick = (url) =>
-                                                (sendState.audio = url);
-                                        }
-                                    "
-                                >
-                                    {{
-                                        decodeURI(
-                                            sendState.audio
-                                                ?.split("/")
-                                                .findLast(() => true) ??
-                                                "Выбрать аудио файл"
-                                        )
-                                    }}
-                                </UButton>
-                                <UButton
-                                    label="Выбрать визуальный файл"
-                                    class="w-fit"
-                                    variant="soft"
-                                    @click="
-                                        () => {
-                                            refreshFiles();
-                                            filePickerState.open = true;
-                                            filePickerState.filter = (file) =>
-                                                file.name.endsWith('.png') ||
-                                                file.name.endsWith('.jpg') ||
-                                                file.name.endsWith('.mp4') ||
-                                                file.name === 'color';
-                                            filePickerState.onPick = (url) => {
-                                                sendState.stageUpdateContent =
-                                                    url;
-                                                if (
-                                                    url.endsWith('.png') ||
-                                                    url.endsWith('.jpg')
-                                                ) {
-                                                    sendState.stageUpdateType =
-                                                        'image';
-                                                } else if (
-                                                    url.endsWith('.mp4')
-                                                ) {
-                                                    sendState.stageUpdateType =
-                                                        'video';
-                                                } else {
-                                                    sendState.stageUpdateType =
-                                                        'color';
-                                                }
-                                            };
-                                        }
-                                    "
-                                >
-                                    {{ sendState.stageUpdateContent }}
-                                    ({{
-                                        {
-                                            video: "Видео",
-                                            image: "Картинка",
-                                            color: "Цвет",
-                                            clear: "Пустота",
-                                        }[sendState.stageUpdateType ?? "clear"]
-                                    }})
-                                </UButton>
+                                <UButtonGroup class="w-full">
+                                    <UButton
+                                        label="Выбрать аудио файл"
+                                        class="w-fit"
+                                        variant="soft"
+                                        @click="
+                                            () => {
+                                                refreshFiles();
+                                                filePickerState.open = true;
+                                                filePickerState.filter = (
+                                                    file
+                                                ) => file.name.endsWith('.mp3');
+                                                filePickerState.onPick = (
+                                                    url
+                                                ) => (sendState.audio = url);
+                                            }
+                                        "
+                                    >
+                                        {{
+                                            decodeURI(
+                                                sendState.audio
+                                                    ?.split("/")
+                                                    .findLast(() => true) ??
+                                                    "Выбрать аудио файл"
+                                            )
+                                        }}
+                                    </UButton>
+                                    <UButton
+                                        v-if="sendState?.audio !== 
+                                            (eventConfig?.state as DBRow<'state'>)?.audio"
+                                        label="Не менять"
+                                        @click="
+                                            sendState.audio = (
+                                                eventConfig?.state as DBRow<'state'>
+                                            )?.audio
+                                        "
+                                    />
+                                </UButtonGroup>
+                                <UButtonGroup class="w-full">
+                                    <UButton
+                                        label="Выбрать визуальный файл"
+                                        class="w-fit"
+                                        variant="soft"
+                                        @click="
+                                            () => {
+                                                refreshFiles();
+                                                filePickerState.open = true;
+                                                filePickerState.filter = (
+                                                    file
+                                                ) =>
+                                                    file.name.endsWith(
+                                                        '.png'
+                                                    ) ||
+                                                    file.name.endsWith(
+                                                        '.jpg'
+                                                    ) ||
+                                                    file.name.endsWith(
+                                                        '.mp4'
+                                                    ) ||
+                                                    file.name === 'color';
+                                                filePickerState.onPick = (
+                                                    url
+                                                ) => {
+                                                    sendState.stageUpdateContent =
+                                                        url;
+                                                    if (
+                                                        url.endsWith('.png') ||
+                                                        url.endsWith('.jpg')
+                                                    ) {
+                                                        sendState.stageUpdateType =
+                                                            'image';
+                                                    } else if (
+                                                        url.endsWith('.mp4')
+                                                    ) {
+                                                        sendState.stageUpdateType =
+                                                            'video';
+                                                    } else {
+                                                        sendState.stageUpdateType =
+                                                            'color';
+                                                    }
+                                                };
+                                            }
+                                        "
+                                    >
+                                        {{ sendState.stageUpdateContent }}
+                                        ({{
+                                            {
+                                                video: "Видео",
+                                                image: "Картинка",
+                                                color: "Цвет",
+                                                clear: "Пустота",
+                                            }[
+                                                sendState.stageUpdateType ??
+                                                    "clear"
+                                            ]
+                                        }})
+                                    </UButton>
+                                    <UButton
+                                        v-if="sendState?.stageUpdateType !== 
+                                            (eventConfig?.state as DBRow<'state'>)?.stageUpdateType || sendState?.stageUpdateContent !== 
+                                            (eventConfig?.state as DBRow<'state'>)?.stageUpdateContent"
+                                        label="Не менять"
+                                        @click="() => {
+                                            sendState.stageUpdateType = (
+                                                eventConfig?.state as DBRow<'state'>
+                                            )?.stageUpdateType
+                                            sendState.stageUpdateContent = (
+                                                eventConfig?.state as DBRow<'state'>
+                                            )?.stageUpdateContent
+										}
+                                        "
+                                    />
+                                </UButtonGroup>
                             </div>
                             <UFormGroup label="Текст на прямом эфире">
                                 <UButtonGroup class="w-full">
@@ -675,11 +719,14 @@ const pushStateToServer = async () => {
                                     />
                                     <UButton
                                         v-if="
-                                            sendState?.livestream !== undefined
+                                            sendState?.livestream !==
+                                            (eventConfig?.state as DBRow<'state'>)?.livestream
                                         "
                                         label="Не менять"
                                         @click="
-                                            sendState.livestream = undefined
+                                            sendState.livestream = (
+                                                eventConfig?.state as DBRow<'state'>
+                                            )?.livestream
                                         "
                                     />
                                 </UButtonGroup>
@@ -696,9 +743,14 @@ const pushStateToServer = async () => {
                                         "
                                     />
                                     <UButton
-                                        v-if="sendState?.website !== undefined"
+                                        v-if="sendState?.website !== 
+                                            (eventConfig?.state as DBRow<'state'>)?.website"
                                         label="Не менять"
-                                        @click="sendState.website = undefined"
+                                        @click="
+                                            sendState.website = (
+                                                eventConfig?.state as DBRow<'state'>
+                                            )?.website
+                                        "
                                     />
                                 </UButtonGroup>
                             </UFormGroup>

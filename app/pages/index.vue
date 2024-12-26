@@ -1,7 +1,13 @@
 <script lang="ts" setup>
+import type { DBRow } from "~~/supabase/utils";
+
 const eventConfig = useEventConfig();
 
 const isdev = import.meta.dev;
+
+const eventState = computed(
+    () => eventConfig.value?.state as DBRow<"state"> | undefined
+);
 </script>
 
 <template>
@@ -24,28 +30,41 @@ const isdev = import.meta.dev;
         />
 
         <UCard v-else class="relative">
-            <div class="space-y-2">
-                <img
-                    v-if="eventConfig.cover_url"
-                    class="absolute top-0 left-0 w-full h-60 object-center object-cover rounded-t-lg"
-                    :src="eventConfig.cover_url"
-                    alt="Cover graphic"
-                    style="
-                        mask-image: linear-gradient(
-                            to bottom,
-                            black 0%,
-                            black 70%,
-                            transparent 98%
-                        );
-                    "
-                />
-                <div class="h-52" />
-                <h2 class="text-xl font-semibold">{{ eventConfig.name }}</h2>
-                <hr class="opacity-10" />
-                <p class="opacity-70">
-                    {{ eventConfig.description }}
-                </p>
-            </div>
+            <template #header>
+                <div class="space-y-4">
+                    <img
+                        v-if="eventConfig.cover_url"
+                        class="absolute top-0 left-0 w-full h-60 object-center object-cover rounded-t-lg"
+                        :src="eventConfig.cover_url"
+                        alt="Cover graphic"
+                        style="
+                            mask-image: linear-gradient(
+                                to bottom,
+                                black 0%,
+                                black 70%,
+                                transparent 98%
+                            );
+                        "
+                    />
+                    <div class="h-52" />
+                    <h2 class="text-xl font-semibold">
+                        {{ eventConfig.name }}
+                    </h2>
+                </div>
+            </template>
+            <p class="opacity-70">
+                {{ eventConfig.description }}
+            </p>
+            <template v-if="eventState?.website" #footer>
+                <div class="flex items-center gap-2">
+                    <UIcon
+                        class="text-xl opacity-50"
+                        name="svg-spinners:bars-scale-middle"
+                    />
+                    <h3 class="text-xl font-semibold">Сейчас на сцене</h3>
+                    <p class="italic ml-auto">{{ eventState.website }}</p>
+                </div>
+            </template>
         </UCard>
 
         <template
