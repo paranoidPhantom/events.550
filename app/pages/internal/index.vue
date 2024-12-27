@@ -814,6 +814,9 @@ const { data: presets } = useAsyncData(async () => {
                                     "
                                 >
                                     <div class="flex flex-col gap-2">
+                                        <p class="text-xl">
+                                            {{ preset.label }}
+                                        </p>
                                         <UBadge variant="subtle" size="lg">
                                             <div
                                                 class="flex items-center gap-2"
