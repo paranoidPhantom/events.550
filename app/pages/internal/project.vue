@@ -13,25 +13,39 @@ const projection = computed(
 <template>
     <div class="cursor-none h-screen w-screen bg-black">
         <div v-if="projection?.stageUpdateContent">
-            <img
-                v-if="projection?.stageUpdateType === 'image'"
-                class="h-screen w-screen object-cover"
-                :src="projection?.stageUpdateContent"
-            />
-            <video
-                class="h-screen w-screen object-cover"
-                autoplay
-                :loop="projection.stageUpdateLooped"
-                v-else-if="projection?.stageUpdateType === 'video'"
-                :src="projection.stageUpdateContent"
-            />
-            <div
-                v-else-if="projection?.stageUpdateType === 'color'"
-                class="h-screen w-screen"
-                :style="{ backgroundColor: projection?.stageUpdateContent }"
-            />
+            <Transition name="fade" mode="out-in">
+                <img
+                    v-if="projection?.stageUpdateType === 'image'"
+                    class="h-screen w-screen object-cover"
+                    :src="projection?.stageUpdateContent"
+                    :key="`img_${projection?.stageUpdateContent}`"
+                />
+                <video
+                    class="h-screen w-screen object-cover"
+                    autoplay
+                    :loop="projection.stageUpdateLooped"
+                    v-else-if="projection?.stageUpdateType === 'video'"
+                    :src="projection.stageUpdateContent"
+                    :key="`video_${projection?.stageUpdateContent}`"
+                />
+                <div
+                    v-else-if="projection?.stageUpdateType === 'color'"
+                    class="h-screen w-screen"
+                    :style="{ backgroundColor: projection?.stageUpdateContent }"
+                />
+            </Transition>
         </div>
     </div>
 </template>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.5s;
+}
+</style>
