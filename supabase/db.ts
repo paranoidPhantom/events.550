@@ -196,6 +196,7 @@ export type Database = {
           audio: string
           created_at: string
           id: number
+          index: number
           label: string | null
           livestream: string
           stageUpdateContent: string
@@ -207,6 +208,7 @@ export type Database = {
           audio?: string
           created_at?: string
           id?: number
+          index?: number
           label?: string | null
           livestream?: string
           stageUpdateContent?: string
@@ -218,6 +220,7 @@ export type Database = {
           audio?: string
           created_at?: string
           id?: number
+          index?: number
           label?: string | null
           livestream?: string
           stageUpdateContent?: string
