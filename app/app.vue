@@ -116,14 +116,6 @@ const adminPermsWatcher = watch(adminPerms, (newPerms) => {
 
 onMounted(subscribeToDBChanges);
 
-useScript({
-    src: "https://cdn.jsdelivr.net/npm/@erikwatson/snowfall/dist/snowfall.min.js",
-});
-useScript({
-    src: "/js/activate.js",
-    async: true,
-});
-
 const colorMode = useColorMode();
 colorMode.preference = "dark";
 
