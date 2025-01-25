@@ -342,7 +342,9 @@ const pushStateToServer = async () => {
 };
 
 const { data: presets } = useAsyncData(async () => {
-    const { data } = await supabase.from("state").select();
+    const { data } = await supabase.from("state").select().order("index", {
+        ascending: true,
+    });
     return data;
 });
 </script>
