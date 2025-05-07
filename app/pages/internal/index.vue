@@ -538,9 +538,6 @@ const { data: presets } = useAsyncData(async () => {
                                 v-if="eventConfig?.state"
                                 class="flex flex-col gap-2"
                             >
-                                <h3 class="text-xl font-semibold">
-                                    Текущее состояние
-                                </h3>
                                 <hr class="opacity-10" />
                                 <p>
                                     <span class="opacity-50"> На сцене:</span>
@@ -612,11 +609,6 @@ const { data: presets } = useAsyncData(async () => {
                                     }}
                                 </UBadge>
                             </div>
-                        </template>
-                        <div class="space-y-2">
-                            <h3 class="text-xl font-semibold">
-                                Обновить состояние
-                            </h3>
                             <UButton
                                 variant="outline"
                                 label="Сброс"
@@ -799,7 +791,7 @@ const { data: presets } = useAsyncData(async () => {
                                 :disabled="sendState.audio === (eventConfig?.state as DBRow<'state'>).audio && sendState.livestream === (eventConfig?.state as DBRow<'state'>).livestream && sendState.stageUpdateContent === (eventConfig?.state as DBRow<'state'>).stageUpdateContent && sendState.stageUpdateLooped === (eventConfig?.state as DBRow<'state'>).stageUpdateLooped && sendState.website === (eventConfig?.state as DBRow<'state'>).website"
                                 @click="pushStateToServer"
                             />
-                        </div>
+                        </template>
                         <template #footer>
                             <h3 class="text-xl font-semibold">Пресеты</h3>
                             <hr class="opacity-10 my-4" />
