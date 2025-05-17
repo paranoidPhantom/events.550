@@ -14,6 +14,8 @@ const supabase = useSupabaseClient<Database>();
 const db_realtime = supabase.channel("event_realtime");
 const db_realtime_admin = supabase.channel("event_realtime_admin");
 
+useColorMode().preference = "dark";
+
 const subscribeToDBChanges = () => {
     db_realtime
         .on(
