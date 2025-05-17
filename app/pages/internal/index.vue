@@ -795,7 +795,7 @@ const { data: presets } = useAsyncData(async () => {
                         <template #footer>
                             <h3 class="text-xl font-semibold">Пресеты</h3>
                             <hr class="opacity-10 my-4" />
-                            <div class="flex flex-wrap gap-2">
+                            <div class="flex flex-wrap gap-2 select-none">
                                 <UCard
                                     v-for="preset in presets"
                                     :key="preset.id"
