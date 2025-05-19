@@ -14,12 +14,17 @@ const projection = computed(
     <div class="cursor-none h-screen w-screen bg-black">
         <div v-if="projection?.stageUpdateContent">
             <Transition name="fade" mode="out-in">
-                <img
-                    v-if="projection?.stageUpdateType === 'image'"
-                    class="h-screen w-screen object-cover"
-                    :src="projection?.stageUpdateContent"
-                    :key="`img_${projection?.stageUpdateContent}`"
-                />
+                <div v-if="projection?.stageUpdateType === 'image'">
+                    <img
+                        class="h-screen w-screen"
+                        :class="{
+                            'object-contain': projection?.overrideObjectFit,
+                            'object-cover': !projection?.overrideObjectFit,
+                        }"
+                        :src="projection?.stageUpdateContent"
+                        :key="`img_${projection?.stageUpdateContent}`"
+                    />
+                </div>
                 <video
                     class="h-screen w-screen object-cover"
                     autoplay
