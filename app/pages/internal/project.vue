@@ -22,7 +22,7 @@ const projection = computed(
                         'object-cover': !projection?.overrideObjectFit,
                     }"
                     :src="projection?.stageUpdateContent"
-                    :key="`img_${projection?.stageUpdateContent}`"
+                    :key="`${projection?.id}_image`"
                 />
 
                 <video
