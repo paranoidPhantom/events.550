@@ -9,7 +9,7 @@ export const useMyPerms = () => {
     );
     const supabase = useSupabaseClient<Database>();
 
-    const fetchEventConfig = async () => {
+    const fetchMyPerms = async () => {
         const { data, error } = await supabase
             .from("profiles")
             .select()
@@ -18,7 +18,7 @@ export const useMyPerms = () => {
         myPerms.value = data?.perms ?? null;
     };
 
-    if (!myPerms.value) fetchEventConfig();
+    if (!myPerms.value) fetchMyPerms();
 
     return myPerms;
 };

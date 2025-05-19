@@ -102,6 +102,7 @@ const voteCreationState = ref<Record<string, Record<string, boolean>>>({});
 
 const stopIDWatcher = watchEffect(() => {
     if (identities.value) {
+        console.warn("!");
         stopIDWatcher();
         identities.value.forEach((identity) => {
             voteCreationState.value[identity.id] = Object.fromEntries(
@@ -347,6 +348,32 @@ const { data: presets } = useAsyncData(async () => {
     });
     return data;
 });
+
+const incrementIndex = async () => {
+    const { data: nextCueData } = await supabase
+        .from("state")
+        .select()
+        .gt("index", (eventConfig.value?.state as DBRow<"state">)?.index ?? 0)
+        .order("index");
+    if (!nextCueData) {
+        toast.add({
+            title: "No next cue found",
+            description: "There are no more cues to increment to.",
+            color: "yellow",
+        });
+        return;
+    }
+    if (nextCueData.length === 0) {
+        toast.add({
+            title: "No next cue found",
+            description: "There are no more cues to increment to.",
+            color: "yellow",
+        });
+        return;
+    }
+    sendState.value = nextCueData[0];
+    await pushStateToServer();
+};
 </script>
 
 <template>
@@ -784,12 +811,21 @@ const { data: presets } = useAsyncData(async () => {
                                     />
                                 </UButtonGroup>
                             </UFormGroup>
+                            <hr class="opacity-20 w-48 my-4" />
                             <UButton
                                 size="lg"
                                 icon="tabler:stack-push"
                                 label="ПРИМЕНИТЬ"
                                 :disabled="sendState.audio === (eventConfig?.state as DBRow<'state'>).audio && sendState.livestream === (eventConfig?.state as DBRow<'state'>).livestream && sendState.stageUpdateContent === (eventConfig?.state as DBRow<'state'>).stageUpdateContent && sendState.stageUpdateLooped === (eventConfig?.state as DBRow<'state'>).stageUpdateLooped && sendState.website === (eventConfig?.state as DBRow<'state'>).website"
                                 @click="pushStateToServer"
+                            />
+                            <hr class="opacity-20 w-48 my-4" />
+                            <UButton
+                                size="lg"
+                                icon="material-symbols:read-more"
+                                label="ИНКРМЕНТАЦИЯ"
+                                color="green"
+                                @click="incrementIndex"
                             />
                         </template>
                         <template #footer>
