@@ -803,7 +803,7 @@ const { data: presets } = useAsyncData(async () => {
                                     @click="
                                         (event: MouseEvent) => {
                                             sendState = preset;
-											if (event.shiftKey) pushStateToServer()
+											if (event.shiftKey || event.pointerType !== 'mouse') pushStateToServer()
                                         }
                                     "
                                 >
