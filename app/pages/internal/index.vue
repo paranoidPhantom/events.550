@@ -823,7 +823,7 @@ const incrementIndex = async () => {
                             <UButton
                                 size="lg"
                                 icon="material-symbols:read-more"
-                                label="ИНКРМЕНТАЦИЯ"
+                                label="Increment Index"
                                 color="green"
                                 @click="incrementIndex"
                             />
