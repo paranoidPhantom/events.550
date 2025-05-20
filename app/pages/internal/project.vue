@@ -26,7 +26,11 @@ const projection = computed(
                 />
 
                 <video
-                    class="h-screen w-screen object-cover"
+                    class="h-screen w-screen"
+                    :class="{
+                        'object-contain': projection?.overrideObjectFit,
+                        'object-cover': !projection?.overrideObjectFit,
+                    }"
                     autoplay
                     :loop="projection.stageUpdateLooped"
                     v-else-if="projection?.stageUpdateType === 'video'"
